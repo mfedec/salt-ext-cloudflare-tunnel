@@ -124,9 +124,9 @@ def present(name, hostname, service):
             connector = __salt__["cloudflare_tunnel.install_connector"](tunnel["id"])
 
             if connector:
-                ret["changes"].setdefault("connector started", True)
+                ret["changes"].setdefault("connector installed and started", True)
                 ret["result"] = True
-                ret["comment"] = "\n".join([ret["comment"], "Connector was configured for {}".format(tunnel["name"])])
+                ret["comment"] = "\n".join([ret["comment"], "Connector was installed configured for {}".format(tunnel["name"])])
             else:
                 ret["result"] = False
                 ret["comment"] = "\n".join([ret["comment"], "Failed to configure connector"])
@@ -135,8 +135,6 @@ def present(name, hostname, service):
             ret["comment"] = "Tunnel not found, could not configure the connector"
 
     return ret
-
-## TODO: For connector, we need to check to see if it's installed
 
 ## WIP: NEED TO UNINSTALL THE CONNECTOR BEFORE REMOVING THE TUNNEL.
 
@@ -160,10 +158,12 @@ def absent(name):
 
     tunnel = __salt__["cloudflare_tunnel.get_tunnel"](name)
 
+    # hmm, if one of the things fails, but the rest don't, result = True, but it would need to
+    # be false, so it shows failed.. how to best do that? Do we just fail at the first part?
+
     if tunnel:
         if __opts__["test"]:
             ret["comment"] = "Cloudflare Tunnel {} will be deleted".format(name)
-            ret["result"] = None
             return ret
 
         # Check to see if there is a tunnel config, which will contain a hostname that we will
@@ -171,10 +171,19 @@ def absent(name):
         tunnel_config = __salt__["cloudflare_tunnel.get_tunnel_config"](tunnel["id"])
 
         if tunnel_config:
+            connector = __salt__["cloudflare_tunnel.remove_connector"]()
+            if connector:
+                ret["comment"] = "Cloudflare connector has been removed"
+                ret["changes"].setdefault("connector", "removed")
+                ret["result"] = True
+            else:
+                ret["comment"] = "Failed to uninstall the cloudflare connector"
+                ret["result"] = False
+
             dns = __salt__["cloudflare_tunnel.get_dns"](tunnel_config["hostname"])
             if dns:
                 if __salt__["cloudflare_tunnel.remove_dns"](dns["name"]):
-                    ret["comment"] = "DNS entry {} has been removed".format(dns["name"])
+                    ret["comment"] = "\n".join([ret["comment"],"DNS entry {} has been removed".format(dns["name"])])
                     ret["changes"].setdefault("dns", "removed {}".format(dns["name"]))
                     ret["result"] = True
 

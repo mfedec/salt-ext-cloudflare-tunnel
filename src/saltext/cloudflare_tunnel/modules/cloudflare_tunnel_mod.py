@@ -437,8 +437,9 @@ def create_tunnel_config(tunnel_id, hostname, url):
     return _simple_config(tunnel_config)
 
 
-def is_connector_running():
-    return __salt__["service.status"]("cloudflared")
+# Don't think I need, using service.available is better for this purpose.
+# def is_connector_running():
+#     return __salt__["service.status"]("cloudflared")
 
 
 def is_connector_installed():
@@ -457,9 +458,10 @@ def install_connector(tunnel_id):
 
 
 def remove_connector():
-    output = __salt__["cmd.run"]("cloudflared service uninstall")
+    if __salt__["service.available"]("cloudflared"):
+        output = __salt__["cmd.run"]("cloudflared service uninstall")
 
-    if "uninstalled successfully" not in output:
-        return False
+        if "uninstalled successfully" not in output:
+            return False
 
     return True
