@@ -458,6 +458,7 @@ def install_connector(tunnel_id):
 
 
 def remove_connector():
+    # Check to see if connector is installed as a service before removing.
     if __salt__["service.available"]("cloudflared"):
         output = __salt__["cmd.run"]("cloudflared service uninstall")
 

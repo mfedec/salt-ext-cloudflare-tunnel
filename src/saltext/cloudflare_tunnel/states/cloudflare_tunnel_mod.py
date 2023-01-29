@@ -136,7 +136,8 @@ def present(name, hostname, service):
 
     return ret
 
-## WIP: NEED TO UNINSTALL THE CONNECTOR BEFORE REMOVING THE TUNNEL.
+# cloudflare.present: hmm, if one of the things fails, but the rest don't, result = True, but it would need to
+# be false, so it shows failed.. how to best do that? Do we just fail at the first part?
 
 ## TODO: How do we update a config? dns? tunnel name?
 
@@ -158,9 +159,6 @@ def absent(name):
 
     tunnel = __salt__["cloudflare_tunnel.get_tunnel"](name)
 
-    # hmm, if one of the things fails, but the rest don't, result = True, but it would need to
-    # be false, so it shows failed.. how to best do that? Do we just fail at the first part?
-
     if tunnel:
         if __opts__["test"]:
             ret["comment"] = "Cloudflare Tunnel {} will be deleted".format(name)
@@ -179,6 +177,7 @@ def absent(name):
             else:
                 ret["comment"] = "Failed to uninstall the cloudflare connector"
                 ret["result"] = False
+                return ret
 
             dns = __salt__["cloudflare_tunnel.get_dns"](tunnel_config["hostname"])
             if dns:
@@ -186,6 +185,10 @@ def absent(name):
                     ret["comment"] = "\n".join([ret["comment"],"DNS entry {} has been removed".format(dns["name"])])
                     ret["changes"].setdefault("dns", "removed {}".format(dns["name"]))
                     ret["result"] = True
+                else:
+                    ret["comment"] = "Failed to remove DNS entry{}".format(dns["name"])
+                    ret["result"] = False
+                    return ret
 
         if __salt__["cloudflare_tunnel.remove_tunnel"](tunnel["id"]):
             ret["comment"] = "\n".join([ret["comment"],"Cloudflare Tunnel {} has been removed".format(tunnel["name"])])
@@ -194,6 +197,7 @@ def absent(name):
         else:
             ret["comment"] = "Failed to remove Cloudflare tunnel {}".format(tunnel["name"])
             ret["result"] = False
+            return ret
     else:
         ret["comment"] = "Cloudflare Tunnel {} does not exist".format(name)
         ret["result"] = True
