@@ -42,7 +42,8 @@ def __virtual__():
     if not salt.utils.path.which("cloudflared"):
         return (
             False,
-            "The cloudflare execution module cannot be loaded: " "cloudflared cli is not installed",
+            "The cloudflare execution module cannot be loaded: "
+            + "cloudflared cli is not installed",
         )
 
     if HAS_LIBS:
@@ -56,6 +57,9 @@ def __virtual__():
 
 
 def _simple_tunnel(tunnel):
+    """
+    Simplify the results returned from the API
+    """
     return {
         "status": tunnel["status"],
         "id": tunnel["id"],
@@ -65,10 +69,16 @@ def _simple_tunnel(tunnel):
 
 
 def _simple_zone(zone):
+    """
+    Simplify the results returned from the API
+    """
     return {"id": zone["id"], "name": zone["name"], "status": zone["status"]}
 
 
 def _simple_dns(dns):
+    """
+    Simplify the results returned from the API
+    """
     return {
         "id": dns["id"],
         "name": dns["name"],
@@ -80,6 +90,9 @@ def _simple_dns(dns):
 
 
 def _simple_config(tunnel_config):
+    """
+    Simplify the results returned from the API
+    """
     return {
         "tunnel_id": tunnel_config["tunnel_id"],
         "hostname": tunnel_config["config"]["ingress"][0]["hostname"],
@@ -88,6 +101,9 @@ def _simple_config(tunnel_config):
 
 
 def _generate_secret():
+    """
+    Generates a secret to be used when creating the tunnel
+    """
     random_string = "".join(
         random.choices(string.ascii_uppercase + string.ascii_lowercase + string.digits, k=35)
     )
@@ -100,6 +116,9 @@ def _generate_secret():
 
 # Need to make sure we add try exception everywhere.
 def _get_tunnel_token(tunnel_id):
+    """
+    Generates a tunnel token to be used when installing the cloudflared connector
+    """
     api_token = __salt__["config.get"]("cloudflare").get("api_token")
     account = __salt__["config.get"]("cloudflare").get("account")
 
@@ -192,8 +211,8 @@ def create_tunnel(tunnel_name):
                     "config_src": "cloudflare",
                 },
             )
-        except CloudFlare.exceptions.CloudFlareAPIError as e:
-            log.exception(e)
+        except CloudFlare.exceptions.CloudFlareAPIError as exc:
+            log.exception(exc)
             return False
 
     return _simple_tunnel(tunnel)
@@ -216,17 +235,17 @@ def remove_tunnel(tunnel_id):
     try:
         tunnel = cf_.accounts.cfd_tunnel.delete(account, tunnel_id)
         if tunnel:
-            log.info("Tunnel {} has been removed".format(tunnel["name"]))
+            log.info("Tunnel %s has been removed", tunnel["name"])
             return True
         else:
-            log.error(f"There was an issue removing the tunnel with id {tunnel_id}")
+            log.error("There was an issue removing the tunnel with id %s", tunnel_id)
             return False
 
-    except CloudFlare.exceptions.CloudFlareAPIError as e:
-        log.exception(e)
+    except CloudFlare.exceptions.CloudFlareAPIError as exc:
+        log.exception(exc)
         return False
 
-    log.error(f"There was an issue removing the tunnel with id {tunnel_id}")
+    log.error("There was an issue removing the tunnel with id %s", tunnel_id)
     return False
 
 
@@ -241,7 +260,6 @@ def get_dns(dns_name):
         salt '*' cloudflare_tunnel.get_dns sample.example.com
     """
     api_token = __salt__["config.get"]("cloudflare").get("api_token")
-    account = __salt__["config.get"]("cloudflare").get("account")
 
     zone = _get_zone_id(dns_name)
 
@@ -273,7 +291,6 @@ def create_dns(hostname, tunnel_id):
         salt '*' cloudflare_tunnel.create_dns test tunnel_id
     """
     api_token = __salt__["config.get"]("cloudflare").get("api_token")
-    account = __salt__["config.get"]("cloudflare").get("account")
 
     # Get the zone
     zone = _get_zone_id(hostname)
@@ -301,14 +318,14 @@ def create_dns(hostname, tunnel_id):
                 try:
                     dns = cf_.zones.dns_records.put(zone["id"], dns["id"], data=dns_data)
 
-                except CloudFlare.exceptions.CloudFlareAPIError as e:
-                    log.exception(e)
+                except CloudFlare.exceptions.CloudFlareAPIError as exc:
+                    log.exception(exc)
                     return False
         else:
             try:
                 dns = cf_.zones.dns_records.post(zone["id"], data=dns_data)
-            except CloudFlare.exceptions.CloudFlareAPIError as e:
-                log.exception(e)
+            except CloudFlare.exceptions.CloudFlareAPIError as exc:
+                log.exception(exc)
                 return False
     else:
         # Need to figure out how to return things like no zone found
@@ -336,14 +353,14 @@ def remove_dns(hostname):
         try:
             ret_dns = cf_.zones.dns_records.delete(dns["zone_id"], dns["id"])
             if ret_dns:
-                log.info("DNS Entryu {} has been removed".format(dns["name"]))
+                log.info("DNS Entry %s has been removed", dns["name"])
                 return True
             else:
-                log.error(f"There was an issue removing the DNS entry {hostname}")
+                log.error("There was an issue removing the DNS entry %s", hostname)
                 return False
 
-        except CloudFlare.exceptions.CloudFlareAPIError as e:
-            log.exception(e)
+        except CloudFlare.exceptions.CloudFlareAPIError as exc:
+            log.exception(exc)
             return False
     else:
         log.error("Could not find DNS entry for %s", hostname)
@@ -372,8 +389,8 @@ def get_tunnel_config(tunnel_id):
         if tunnel_config["config"] is None:
             return False
 
-    except CloudFlare.exceptions.CloudFlareAPIError as e:
-        log.exception(e)
+    except CloudFlare.exceptions.CloudFlareAPIError as exc:
+        log.exception(exc)
         return False
 
     return _simple_config(tunnel_config)
@@ -411,8 +428,8 @@ def create_tunnel_config(tunnel_id, hostname, url):
         tunnel_config = cf_.accounts.cfd_tunnel.configurations.put(
             account, tunnel_id, data=config_details
         )
-    except CloudFlare.exceptions.CloudFlareAPIError as e:
-        log.exception(e)
+    except CloudFlare.exceptions.CloudFlareAPIError as exc:
+        log.exception(exc)
         return False
 
     return _simple_config(tunnel_config)

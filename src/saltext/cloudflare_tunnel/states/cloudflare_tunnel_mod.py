@@ -153,12 +153,6 @@ def present(name, hostname, service):
     return ret
 
 
-# cloudflare.present: hmm, if one of the things fails, but the rest don't, result = True, but it would need to
-# be false, so it shows failed.. how to best do that? Do we just fail at the first part?
-
-# TODO: How do we update a config? dns? tunnel name?
-
-
 def absent(name):
     """
     .. code-block: yaml
