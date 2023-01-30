@@ -16,11 +16,11 @@ Module for Setting up Cloudflare Zero Trust Tunnels
             account:
 
 """
-
 import base64
 import logging
 import random
 import string
+
 import salt.utils
 
 try:
@@ -39,11 +39,10 @@ def __virtual__():
     """
     Check to make sure cloudflare python installed and cloudflared cli
     """
-    if not salt.utils.path.which('cloudflared'):
+    if not salt.utils.path.which("cloudflared"):
         return (
             False,
-            "The cloudflare execution module cannot be loaded: "
-            "cloudflared cli is not installed"
+            "The cloudflare execution module cannot be loaded: " "cloudflared cli is not installed",
         )
 
     if HAS_LIBS:
@@ -54,6 +53,7 @@ def __virtual__():
         "The cloudflare execution module cannot be loaded: "
         "Cloudflare Python module is not installed.",
     )
+
 
 ## Need to define a general function to make the requests through
 ## the cloudflare api. It will do the actual call through the cloudflare
@@ -71,11 +71,7 @@ def _simple_tunnel(tunnel):
 
 
 def _simple_zone(zone):
-    return {
-        "id": zone["id"],
-        "name": zone["name"],
-        "status": zone["status"]
-    }
+    return {"id": zone["id"], "name": zone["name"], "status": zone["status"]}
 
 
 def _simple_dns(dns):
@@ -85,7 +81,7 @@ def _simple_dns(dns):
         "type": dns["type"],
         "content": dns["content"],
         "proxied": dns["proxied"],
-        "zone_id": dns["zone_id"]
+        "zone_id": dns["zone_id"],
     }
 
 
@@ -93,22 +89,20 @@ def _simple_config(tunnel_config):
     return {
         "tunnel_id": tunnel_config["tunnel_id"],
         "hostname": tunnel_config["config"]["ingress"][0]["hostname"],
-        "service": tunnel_config["config"]["ingress"][0]["service"]
+        "service": tunnel_config["config"]["ingress"][0]["service"],
     }
 
 
 def _generate_secret():
     random_string = "".join(
-        random.choices(
-            string.ascii_uppercase + string.ascii_lowercase + string.digits, k=35
-        )
+        random.choices(string.ascii_uppercase + string.ascii_lowercase + string.digits, k=35)
     )
     random_string_bytes = random_string.encode("ascii")
     base64_string_bytes = base64.b64encode(random_string_bytes)
     base64_string = base64_string_bytes.decode("ascii")
 
-
     return base64_string
+
 
 # Need to make sure we add try exception everywhere.
 def _get_tunnel_token(tunnel_id):
@@ -130,14 +124,12 @@ def _get_zone_id(domain_name):
     for each domain that is hosted
     """
     zone_details = None
-    zone_entry = None
     # Split the dns name to pull out just the domain name to grab the zone id
     domain_split = domain_name.split(".")
     domain_length = len(domain_split)
     domain = f"{domain_split[domain_length - 2]}.{domain_split[domain_length - 1]}"
 
     api_token = __salt__["config.get"]("cloudflare").get("api_token")
-    account = __salt__["config.get"]("cloudflare").get("account")
 
     cf_ = CloudFlare.CloudFlare(token=api_token)
     zone_details = cf_.zones.get(params={"name": domain})
@@ -165,7 +157,9 @@ def get_tunnel(tunnel_name):
     account = __salt__["config.get"]("cloudflare").get("account")
 
     cf_ = CloudFlare.CloudFlare(token=api_token)
-    tunnel = cf_.accounts.cfd_tunnel.get(account, params={"name": tunnel_name, "is_deleted": "false"})
+    tunnel = cf_.accounts.cfd_tunnel.get(
+        account, params={"name": tunnel_name, "is_deleted": "false"}
+    )
 
     if tunnel:
         tunnel_details = {}
@@ -197,7 +191,12 @@ def create_tunnel(tunnel_name):
         cf_ = CloudFlare.CloudFlare(token=api_token)
         try:
             tunnel = cf_.accounts.cfd_tunnel.post(
-                account, data={"name": tunnel_name, "tunnel_secret": _generate_secret(), "config_src": "cloudflare"}
+                account,
+                data={
+                    "name": tunnel_name,
+                    "tunnel_secret": _generate_secret(),
+                    "config_src": "cloudflare",
+                },
             )
         except CloudFlare.exceptions.CloudFlareAPIError as e:
             log.exception(e)
@@ -226,14 +225,14 @@ def remove_tunnel(tunnel_id):
             log.info("Tunnel {} has been removed".format(tunnel["name"]))
             return True
         else:
-            log.error("There was an issue removing the tunnel with id {}".format(tunnel_id))
+            log.error(f"There was an issue removing the tunnel with id {tunnel_id}")
             return False
 
     except CloudFlare.exceptions.CloudFlareAPIError as e:
         log.exception(e)
         return False
 
-    log.error("There was an issue removing the tunnel with id {}".format(tunnel_id))
+    log.error(f"There was an issue removing the tunnel with id {tunnel_id}")
     return False
 
 
@@ -296,15 +295,15 @@ def create_dns(hostname, tunnel_id):
         dns_data = {
             "name": domain_split[0],
             "type": "CNAME",
-            "content": "{}.cfargotunnel.com".format(tunnel_id),
+            "content": f"{tunnel_id}.cfargotunnel.com",
             "ttl": 1,
             "proxied": True,
-            "comment": "DNS managed by SaltStack"
+            "comment": "DNS managed by SaltStack",
         }
 
         if dns:
             # If DNS exist, check to see if it is pointing to the correct tunnel
-            if dns["content"] != "{}.cfargotunnel.com".format(tunnel_id):
+            if dns["content"] != f"{tunnel_id}.cfargotunnel.com":
                 try:
                     dns = cf_.zones.dns_records.put(zone["id"], dns["id"], data=dns_data)
 
@@ -313,15 +312,13 @@ def create_dns(hostname, tunnel_id):
                     return False
         else:
             try:
-                dns = cf_.zones.dns_records.post(
-                    zone["id"], data=dns_data
-                )
+                dns = cf_.zones.dns_records.post(zone["id"], data=dns_data)
             except CloudFlare.exceptions.CloudFlareAPIError as e:
                 log.exception(e)
                 return False
     else:
         # Need to figure out how to return things like no zone found
-        return (False, "Cloudflare zone not found for hostname {}".format(hostname))
+        return (False, f"Cloudflare zone not found for hostname {hostname}")
 
     return _simple_dns(dns)
 
@@ -349,17 +346,17 @@ def remove_dns(hostname):
                 log.info("DNS Entryu {} has been removed".format(dns["name"]))
                 return True
             else:
-                log.error("There was an issue removing the DNS entry {}".format(hostname))
+                log.error(f"There was an issue removing the DNS entry {hostname}")
                 return False
 
         except CloudFlare.exceptions.CloudFlareAPIError as e:
             log.exception(e)
             return False
     else:
-        log.error("Could not find DNS entry for {}".format(hostname))
+        log.error(f"Could not find DNS entry for {hostname}")
         return False
 
-    log.error("There was an issue removing the DNS entry {}".format(hostname))
+    log.error(f"There was an issue removing the DNS entry {hostname}")
     return False
 
 
@@ -378,9 +375,7 @@ def get_tunnel_config(tunnel_id):
 
     cf_ = CloudFlare.CloudFlare(token=api_token)
     try:
-        tunnel_config = cf_.accounts.cfd_tunnel.configurations.get(
-            account, tunnel_id
-        )
+        tunnel_config = cf_.accounts.cfd_tunnel.configurations.get(account, tunnel_id)
         if tunnel_config["config"] == None:
             return False
 
@@ -443,13 +438,31 @@ def create_tunnel_config(tunnel_id, hostname, url):
 
 
 def is_connector_installed():
+    """
+    Check if connector service installed
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' cloudflare_tunnel.is_connector_installed
+    """
     return __salt__["service.available"]("cloudflared")
 
 
 def install_connector(tunnel_id):
+    """
+    Install the connector service
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' cloudflare_tunnel.install_connector <tunnel uuid>
+    """
     token = _get_tunnel_token(tunnel_id)
 
-    output = __salt__["cmd.run"]("cloudflared service install {}".format(token))
+    output = __salt__["cmd.run"](f"cloudflared service install {token}")
 
     if "installed successfully" not in output:
         return False
@@ -458,6 +471,15 @@ def install_connector(tunnel_id):
 
 
 def remove_connector():
+    """
+    Remove the connector service
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt '*' cloudflare_tunnel.remove_connector
+    """
     # Check to see if connector is installed as a service before removing.
     if __salt__["service.available"]("cloudflared"):
         output = __salt__["cmd.run"]("cloudflared service uninstall")

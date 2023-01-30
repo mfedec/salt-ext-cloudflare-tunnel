@@ -18,14 +18,3 @@ def configure_loader_modules():
             },
         },
     }
-
-
-def test_replace_this_this_with_something_meaningful():
-    echo_str = "Echoed!"
-    expected = {
-        "name": echo_str,
-        "changes": {},
-        "result": True,
-        "comment": "The 'cloudflare_tunnel.example_function' returned: '{}'".format(echo_str),
-    }
-    assert cloudflare_tunnel_state.exampled(echo_str) == expected
