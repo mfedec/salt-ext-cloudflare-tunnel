@@ -127,10 +127,11 @@ def present(name, hostname, service):
 
     if config_service:
         if __opts__["test"]:
-            ret["comment"] = f"Cloudflare connector will be installed "
+            ret["comment"] = "Cloudflare connector will be installed "
             return ret
 
         if tunnel:
+            tunnel_name = tunnel["name"]
             connector = __salt__["cloudflare_tunnel.install_connector"](tunnel["id"])
 
             if connector:
@@ -139,7 +140,7 @@ def present(name, hostname, service):
                 ret["comment"] = "\n".join(
                     [
                         ret["comment"],
-                        "Connector was installed configured for {}".format(tunnel["name"]),
+                        f"Connector was installed configured for {tunnel_name}",
                     ]
                 )
             else:
@@ -177,8 +178,9 @@ def absent(name):
     tunnel = __salt__["cloudflare_tunnel.get_tunnel"](name)
 
     if tunnel:
+        tunnel_name = tunnel["name"]
         if __opts__["test"]:
-            ret["comment"] = f"Cloudflare Tunnel {name} will be deleted"
+            ret["comment"] = f"Cloudflare Tunnel {tunnel_name} will be deleted"
             return ret
 
         # Check to see if there is a tunnel config, which will contain a hostname that we will
@@ -198,25 +200,26 @@ def absent(name):
 
             dns = __salt__["cloudflare_tunnel.get_dns"](tunnel_config["hostname"])
             if dns:
+                dns_name = dns["name"]
                 if __salt__["cloudflare_tunnel.remove_dns"](dns["name"]):
                     ret["comment"] = "\n".join(
-                        [ret["comment"], "DNS entry {} has been removed".format(dns["name"])]
+                        [ret["comment"], f"DNS entry {dns_name} has been removed"]
                     )
-                    ret["changes"].setdefault("dns", "removed {}".format(dns["name"]))
+                    ret["changes"].setdefault("dns", f"removed {dns_name}")
                     ret["result"] = True
                 else:
-                    ret["comment"] = "Failed to remove DNS entry{}".format(dns["name"])
+                    ret["comment"] = f"Failed to remove DNS entry {dns_name}"
                     ret["result"] = False
                     return ret
 
         if __salt__["cloudflare_tunnel.remove_tunnel"](tunnel["id"]):
             ret["comment"] = "\n".join(
-                [ret["comment"], "Cloudflare Tunnel {} has been removed".format(tunnel["name"])]
+                [ret["comment"], f"Cloudflare Tunnel {tunnel_name} has been removed"]
             )
-            ret["changes"].setdefault("tunnel", "removed {}".format(tunnel["name"]))
+            ret["changes"].setdefault("tunnel", f"removed {tunnel_name}")
             ret["result"] = True
         else:
-            ret["comment"] = "Failed to remove Cloudflare tunnel {}".format(tunnel["name"])
+            ret["comment"] = f"Failed to remove Cloudflare tunnel {tunnel_name}"
             ret["result"] = False
             return ret
     else:

@@ -55,12 +55,6 @@ def __virtual__():
     )
 
 
-## Need to define a general function to make the requests through
-## the cloudflare api. It will do the actual call through the cloudflare
-## module in once place. Check if its a get, post then make the appropriate
-## call to the correct function.
-
-# Should all these be classes instead?
 def _simple_tunnel(tunnel):
     return {
         "status": tunnel["status"],
@@ -337,7 +331,6 @@ def remove_dns(hostname):
 
     if dns:
         api_token = __salt__["config.get"]("cloudflare").get("api_token")
-        account = __salt__["config.get"]("cloudflare").get("account")
 
         cf_ = CloudFlare.CloudFlare(token=api_token)
         try:
@@ -353,10 +346,10 @@ def remove_dns(hostname):
             log.exception(e)
             return False
     else:
-        log.error(f"Could not find DNS entry for {hostname}")
+        log.error("Could not find DNS entry for %s", hostname)
         return False
 
-    log.error(f"There was an issue removing the DNS entry {hostname}")
+    log.error("There was an issue removing the DNS entry %s", hostname)
     return False
 
 
@@ -376,15 +369,8 @@ def get_tunnel_config(tunnel_id):
     cf_ = CloudFlare.CloudFlare(token=api_token)
     try:
         tunnel_config = cf_.accounts.cfd_tunnel.configurations.get(account, tunnel_id)
-        if tunnel_config["config"] == None:
+        if tunnel_config["config"] is None:
             return False
-
-    # If I try to get a config for a tunnel that doesn't exist it throws and exception
-    # Is this ok?
-
-    # TODO:
-    # If previous config did exist and say it was deleted, it will still return something, just not all the fields
-    # {'tunnel_id': 'b24d9eaa-b1c1-45d9-bf96-4d5d5e978c89', 'version': 2, 'config': {'ingress': [{'service': 'http_status:404'}], 'warp-routing': {'enabled': False}}, 'source': 'cloudflare', 'created_at': '2023-01-25T04:40:13.680206Z'}
 
     except CloudFlare.exceptions.CloudFlareAPIError as e:
         log.exception(e)
