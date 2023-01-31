@@ -111,7 +111,7 @@ repos:
 
   # ----- Code Analysis ------------------------------------------------------------------------->
   - repo: https://github.com/saltstack/mirrors-nox
-    rev: v2021.6.12
+    rev: v2022.8.7
     hooks:
       - id: nox
         alias: lint-src
@@ -123,7 +123,7 @@ repos:
           - --
 
   - repo: https://github.com/saltstack/mirrors-nox
-    rev: v2021.6.12
+    rev: v2022.8.7
     hooks:
       - id: nox
         alias: lint-tests

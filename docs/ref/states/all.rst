@@ -8,5 +8,4 @@ State Modules
 .. autosummary::
     :toctree:
 
-    saltext.cloudflare_tunnel.states.__init__
     saltext.cloudflare_tunnel.states.cloudflare_tunnel_mod
