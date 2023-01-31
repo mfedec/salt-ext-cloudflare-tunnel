@@ -38,7 +38,6 @@ def present(name, hostname, service):
 
     tunnel = __salt__["cloudflare_tunnel.get_tunnel"](name)
     dns = __salt__["cloudflare_tunnel.get_dns"](hostname)
-    # config = __salt__["cloudflare_tunnel.get_tunnel_config"](tunnel["id"])
 
     create_tunnel = True
     create_dns = True

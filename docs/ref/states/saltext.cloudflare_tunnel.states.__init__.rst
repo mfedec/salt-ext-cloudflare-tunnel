@@ -1,6 +1,6 @@
+﻿saltext.cloudflare\_tunnel.states.\_\_init\_\_
+==============================================
 
-saltext.cloudflare_tunnel.states.__init__
-=========================================
+.. currentmodule:: saltext.cloudflare_tunnel.states
 
-.. automodule:: saltext.cloudflare_tunnel.states.__init__
-    :members:
+.. autodata:: __init__

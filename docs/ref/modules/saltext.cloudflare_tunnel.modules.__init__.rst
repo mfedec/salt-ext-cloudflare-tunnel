@@ -1,6 +1,6 @@
+﻿saltext.cloudflare\_tunnel.modules.\_\_init\_\_
+===============================================
 
-saltext.cloudflare_tunnel.modules.__init__
-==========================================
+.. currentmodule:: saltext.cloudflare_tunnel.modules
 
-.. automodule:: saltext.cloudflare_tunnel.modules.__init__
-    :members:
+.. autodata:: __init__
