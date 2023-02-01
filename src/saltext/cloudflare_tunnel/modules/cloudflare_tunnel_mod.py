@@ -102,7 +102,14 @@ def _simple_config(tunnel_config):
 
 def _get_client():
     api_token = __salt__["config.get"]("cloudflare").get("api_token")
-    cf_ = CloudFlare.CloudFlare(token=api_token)
+    try:
+
+        cf_ = CloudFlare.CloudFlare(token=api_token)
+
+    except CloudFlare.exceptions.CloudFlareAPIError as exc:
+        log.exception(exc)
+        return False
+
     return cf_
 
 
@@ -172,15 +179,20 @@ def get_tunnel(tunnel_name):
 
     client = _get_client()
 
-    tunnel = client.accounts.cfd_tunnel.get(
-        account, params={"name": tunnel_name, "is_deleted": "false"}
-    )
+    try:
+        tunnel = client.accounts.cfd_tunnel.get(
+            account, params={"name": tunnel_name, "is_deleted": "false"}
+        )
 
-    if tunnel:
-        tunnel_details = {}
-        tunnel_details = _simple_tunnel(tunnel[0])
-    else:
-        return False
+        if tunnel:
+            tunnel_details = {}
+            tunnel_details = _simple_tunnel(tunnel[0])
+        else:
+            return False
+
+    except CloudFlare.exceptions.CloudFlareAPIError as exc:
+            log.exception(exc)
+            return False
 
     return tunnel_details
 
