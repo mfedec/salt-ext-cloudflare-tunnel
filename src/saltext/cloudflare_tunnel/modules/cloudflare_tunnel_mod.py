@@ -100,6 +100,12 @@ def _simple_config(tunnel_config):
     }
 
 
+def _get_client():
+    api_token = __salt__["config.get"]("cloudflare").get("api_token")
+    cf_ = CloudFlare.CloudFlare(token=api_token)
+    return cf_
+
+
 def _generate_secret():
     """
     Generates a secret to be used when creating the tunnel
@@ -119,12 +125,10 @@ def _get_tunnel_token(tunnel_id):
     """
     Generates a tunnel token to be used when installing the cloudflared connector
     """
-    api_token = __salt__["config.get"]("cloudflare").get("api_token")
     account = __salt__["config.get"]("cloudflare").get("account")
 
-    cf_ = CloudFlare.CloudFlare(token=api_token)
-
-    token = cf_.accounts.cfd_tunnel.token.get(account, tunnel_id)
+    client = _get_client()
+    token = client.accounts.cfd_tunnel.token.get(account, tunnel_id)
 
     return token
 
@@ -142,10 +146,8 @@ def _get_zone_id(domain_name):
     domain_length = len(domain_split)
     domain = f"{domain_split[domain_length - 2]}.{domain_split[domain_length - 1]}"
 
-    api_token = __salt__["config.get"]("cloudflare").get("api_token")
-
-    cf_ = CloudFlare.CloudFlare(token=api_token)
-    zone_details = cf_.zones.get(params={"name": domain})
+    client = _get_client()
+    zone_details = client.zones.get(params={"name": domain})
 
     if zone_details:
         ret_zone_details = {}
@@ -166,11 +168,11 @@ def get_tunnel(tunnel_name):
 
         salt '*' cloudflare_tunnel.get_tunnel sample-tunnel
     """
-    api_token = __salt__["config.get"]("cloudflare").get("api_token")
     account = __salt__["config.get"]("cloudflare").get("account")
 
-    cf_ = CloudFlare.CloudFlare(token=api_token)
-    tunnel = cf_.accounts.cfd_tunnel.get(
+    client = _get_client()
+
+    tunnel = client.accounts.cfd_tunnel.get(
         account, params={"name": tunnel_name, "is_deleted": "false"}
     )
 
@@ -198,12 +200,12 @@ def create_tunnel(tunnel_name):
 
     if not tunnel:
         # Tunnel not created or ever created in the past.
-        api_token = __salt__["config.get"]("cloudflare").get("api_token")
         account = __salt__["config.get"]("cloudflare").get("account")
 
-        cf_ = CloudFlare.CloudFlare(token=api_token)
+        client = _get_client()
+
         try:
-            tunnel = cf_.accounts.cfd_tunnel.post(
+            tunnel = client.accounts.cfd_tunnel.post(
                 account,
                 data={
                     "name": tunnel_name,
@@ -228,12 +230,11 @@ def remove_tunnel(tunnel_id):
 
         salt '*' cloudflare_tunnel.remove_tunnel <tunnel uuid>
     """
-    api_token = __salt__["config.get"]("cloudflare").get("api_token")
     account = __salt__["config.get"]("cloudflare").get("account")
 
-    cf_ = CloudFlare.CloudFlare(token=api_token)
+    client = _get_client()
     try:
-        tunnel = cf_.accounts.cfd_tunnel.delete(account, tunnel_id)
+        tunnel = client.accounts.cfd_tunnel.delete(account, tunnel_id)
         if tunnel:
             log.info("Tunnel %s has been removed", tunnel["name"])
             return True
@@ -259,14 +260,12 @@ def get_dns(dns_name):
 
         salt '*' cloudflare_tunnel.get_dns sample.example.com
     """
-    api_token = __salt__["config.get"]("cloudflare").get("api_token")
-
     zone = _get_zone_id(dns_name)
 
     if zone:
-        cf_ = CloudFlare.CloudFlare(token=api_token)
+        client = _get_client()
 
-        dns_details = cf_.zones.dns_records.get(zone["id"], params={"name": dns_name})
+        dns_details = client.zones.dns_records.get(zone["id"], params={"name": dns_name})
 
         if dns_details:
             ret_dns_details = {}
@@ -290,8 +289,6 @@ def create_dns(hostname, tunnel_id):
 
         salt '*' cloudflare_tunnel.create_dns test tunnel_id
     """
-    api_token = __salt__["config.get"]("cloudflare").get("api_token")
-
     # Get the zone
     zone = _get_zone_id(hostname)
 
@@ -299,7 +296,7 @@ def create_dns(hostname, tunnel_id):
         # Split the dns name to pull out just the domain name to grab the zone id
         domain_split = hostname.split(".")
 
-        cf_ = CloudFlare.CloudFlare(token=api_token)
+        client = _get_client()
 
         dns = get_dns(hostname)
 
@@ -316,14 +313,14 @@ def create_dns(hostname, tunnel_id):
             # If DNS exist, check to see if it is pointing to the correct tunnel
             if dns["content"] != f"{tunnel_id}.cfargotunnel.com":
                 try:
-                    dns = cf_.zones.dns_records.put(zone["id"], dns["id"], data=dns_data)
+                    dns = client.zones.dns_records.put(zone["id"], dns["id"], data=dns_data)
 
                 except CloudFlare.exceptions.CloudFlareAPIError as exc:
                     log.exception(exc)
                     return False
         else:
             try:
-                dns = cf_.zones.dns_records.post(zone["id"], data=dns_data)
+                dns = client.zones.dns_records.post(zone["id"], data=dns_data)
             except CloudFlare.exceptions.CloudFlareAPIError as exc:
                 log.exception(exc)
                 return False
@@ -347,11 +344,9 @@ def remove_dns(hostname):
     dns = get_dns(hostname)
 
     if dns:
-        api_token = __salt__["config.get"]("cloudflare").get("api_token")
-
-        cf_ = CloudFlare.CloudFlare(token=api_token)
+        client = _get_client()
         try:
-            ret_dns = cf_.zones.dns_records.delete(dns["zone_id"], dns["id"])
+            ret_dns = client.zones.dns_records.delete(dns["zone_id"], dns["id"])
             if ret_dns:
                 log.info("DNS Entry %s has been removed", dns["name"])
                 return True
@@ -380,12 +375,11 @@ def get_tunnel_config(tunnel_id):
 
         salt '*' cloudflare_tunnel.get_tunnel_config <tunnel uuid>
     """
-    api_token = __salt__["config.get"]("cloudflare").get("api_token")
     account = __salt__["config.get"]("cloudflare").get("account")
 
-    cf_ = CloudFlare.CloudFlare(token=api_token)
+    client = _get_client()
     try:
-        tunnel_config = cf_.accounts.cfd_tunnel.configurations.get(account, tunnel_id)
+        tunnel_config = client.accounts.cfd_tunnel.configurations.get(account, tunnel_id)
         if tunnel_config["config"] is None:
             return False
 
@@ -406,10 +400,9 @@ def create_tunnel_config(tunnel_id, hostname, url):
 
         salt '*' cloudflare_tunnel.create_tunnel_config <tunnel uuid> sub.domain.com https://127.0.0.1
     """
-    api_token = __salt__["config.get"]("cloudflare").get("api_token")
     account = __salt__["config.get"]("cloudflare").get("account")
 
-    cf_ = CloudFlare.CloudFlare(token=api_token)
+    client = _get_client()
     try:
         config_details = {
             "config": {
@@ -425,7 +418,7 @@ def create_tunnel_config(tunnel_id, hostname, url):
             }
         }
 
-        tunnel_config = cf_.accounts.cfd_tunnel.configurations.put(
+        tunnel_config = client.accounts.cfd_tunnel.configurations.put(
             account, tunnel_id, data=config_details
         )
     except CloudFlare.exceptions.CloudFlareAPIError as exc:
@@ -433,11 +426,6 @@ def create_tunnel_config(tunnel_id, hostname, url):
         return False
 
     return _simple_config(tunnel_config)
-
-
-# Don't think I need, using service.available is better for this purpose.
-# def is_connector_running():
-#     return __salt__["service.status"]("cloudflared")
 
 
 def is_connector_installed():
