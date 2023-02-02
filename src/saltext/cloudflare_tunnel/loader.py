@@ -17,3 +17,10 @@ def get_module_dirs():
     Return a list of paths from where salt should load module modules
     """
     return [str(PACKAGE_ROOT / "modules")]
+
+
+def get_utils_dirs():
+    """
+    Return a list of paths from where salt should load module utils
+    """
+    return [str(PACKAGE_ROOT / "utils")]

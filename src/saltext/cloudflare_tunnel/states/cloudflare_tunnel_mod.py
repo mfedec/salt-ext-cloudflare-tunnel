@@ -119,10 +119,12 @@ def present(name, hostname, service):
             ret["changes"].setdefault("dns created", dns["name"])
 
             ret["result"] = True
-            ret["comment"] = "\n".join([ret["comment"], "DNS entry {dns['name']} was created"])
+            ret["comment"] = "\n".join([ret["comment"], f"DNS entry {dns['name']} was created"])
         else:
             ret["result"] = False
-            ret["comment"] = "\n".join([ret["comment"], "Failed to create {dns['name']} DNS entry"])
+            ret["comment"] = "\n".join(
+                [ret["comment"], f"Failed to create {dns['name']} DNS entry"]
+            )
 
     if config_service:
         if __opts__["test"]:
