@@ -22,6 +22,55 @@ def configure_loader_modules():
 ## NEED TO TEST THE EXCEPTION I THINK as well.
 
 
+def test_get_dns_returns_dns():
+    dunder_salt = {
+        "config.get": MagicMock(return_value={}),
+    }
+
+    with patch.dict(cloudflare_tunnel_module.__salt__, dunder_salt):
+        with patch(
+            "saltext.cloudflare_tunnel.modules.cloudflare_tunnel_mod._get_zone_id",
+            MagicMock(return_value={"id": "1234ABC", "name": "example.com", "status": "active"}),
+        ):
+            mock_dns = [
+                {
+                    "id": "372e67954025e0ba6aaa6d586b9e0b59",
+                    "type": "A",
+                    "name": "test.example.com",
+                    "content": "198.51.100.4",
+                    "proxiable": True,
+                    "proxied": False,
+                    "comment": "Domain verification record",
+                    "tags": [
+                        "owner:dns-team"
+                    ],
+                    "ttl": 3600,
+                    "locked": False,
+                    "zone_id": "023e105f4ecef8ad9ca31a8372d0c353",
+                    "zone_name": "example.com",
+                    "created_on": "2014-01-01T05:20:00.12345Z",
+                    "modified_on": "2014-01-01T05:20:00.12345Z",
+                    "data": {},
+                    "meta": {
+                    "auto_added": True,
+                    "source": "primary"
+                    }
+                }
+            ]
+            with patch(
+                "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.get_dns",
+                MagicMock(return_value=mock_dns)
+            ):
+                assert cloudflare_tunnel_module.get_dns("example.com") == {
+                    "id": "372e67954025e0ba6aaa6d586b9e0b59",
+                    "name": "test.example.com",
+                    "type": "A",
+                    "content": "198.51.100.4",
+                    "proxied": False,
+                    "zone_id": "023e105f4ecef8ad9ca31a8372d0c353",
+                }
+
+
 def test_get_tunnel_returns_tunnel():
     ## Not sure what exactly this patch.dict is doing.. works with or without it..
     # with patch.dict(
@@ -46,12 +95,12 @@ def test_get_tunnel_returns_tunnel():
         ret_name = "test-1234"
         ret_status = "inactive"
 
-        mock_tunnel = {
+        mock_tunnel = [{
             "account_tag": ret_account_tag,
             "id": ret_id,
             "name": ret_name,
             "status": ret_status,
-        }
+        }]
         with patch(
             "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.get_tunnel",
             MagicMock(return_value=mock_tunnel),
