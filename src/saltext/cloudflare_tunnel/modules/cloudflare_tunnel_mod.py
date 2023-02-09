@@ -228,6 +228,9 @@ def get_dns(dns_name):
             return False
     else:
         # Need to log it?
+        # Would be nice to return error message.
+        # Just need to figure out how to check for False in an if
+        # statement.
         return False
 
     return _simple_dns(dns_details)

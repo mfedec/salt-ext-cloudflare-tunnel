@@ -7,68 +7,82 @@ import saltext.cloudflare_tunnel.modules.cloudflare_tunnel_mod as cloudflare_tun
 
 @pytest.fixture
 def configure_loader_modules():
-    return {cloudflare_tunnel_module: {}}
-    # module_globals = {
-    #     "__salt__": {
-    #         "cloudflare_tunnel.is_connector_installed": cloudflare_tunnel_module.is_connector_installed,
-    #     },
+    # return {cloudflare_tunnel_module: {}}
+    module_globals = {
+        "__salt__": {
+            "config.get": MagicMock(return_value={})
+        },
 
-    # }
-    # return {
-    #     cloudflare_tunnel_module: module_globals,
-    # }
+    }
+    return {
+        cloudflare_tunnel_module: module_globals,
+    }
 
+@pytest.fixture
+def mock_get_zone_id():
+    with patch(
+        "saltext.cloudflare_tunnel.modules.cloudflare_tunnel_mod._get_zone_id",
+        MagicMock(return_value={"id": "1234ABC", "name": "example.com", "status": "active"}),
+    ):
+        yield
 
 ## NEED TO TEST THE EXCEPTION I THINK as well.
 
 
-def test_get_dns_returns_dns():
-    dunder_salt = {
-        "config.get": MagicMock(return_value={}),
-    }
+def test_get_dns_returns_dns(mock_get_zone_id):
+    mock_dns = [
+        {
+            "id": "372e67954025e0ba6aaa6d586b9e0b59",
+            "type": "A",
+            "name": "test.example.com",
+            "content": "198.51.100.4",
+            "proxiable": True,
+            "proxied": False,
+            "comment": "Domain verification record",
+            "tags": [
+                "owner:dns-team"
+            ],
+            "ttl": 3600,
+            "locked": False,
+            "zone_id": "023e105f4ecef8ad9ca31a8372d0c353",
+            "zone_name": "example.com",
+            "created_on": "2014-01-01T05:20:00.12345Z",
+            "modified_on": "2014-01-01T05:20:00.12345Z",
+            "data": {},
+            "meta": {
+            "auto_added": True,
+            "source": "primary"
+            }
+        }
+    ]
+    with patch(
+        "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.get_dns",
+        MagicMock(return_value=mock_dns)
+    ):
+        assert cloudflare_tunnel_module.get_dns("example.com") == {
+            "id": "372e67954025e0ba6aaa6d586b9e0b59",
+            "name": "test.example.com",
+            "type": "A",
+            "content": "198.51.100.4",
+            "proxied": False,
+            "zone_id": "023e105f4ecef8ad9ca31a8372d0c353",
+        }
 
-    with patch.dict(cloudflare_tunnel_module.__salt__, dunder_salt):
-        with patch(
-            "saltext.cloudflare_tunnel.modules.cloudflare_tunnel_mod._get_zone_id",
-            MagicMock(return_value={"id": "1234ABC", "name": "example.com", "status": "active"}),
-        ):
-            mock_dns = [
-                {
-                    "id": "372e67954025e0ba6aaa6d586b9e0b59",
-                    "type": "A",
-                    "name": "test.example.com",
-                    "content": "198.51.100.4",
-                    "proxiable": True,
-                    "proxied": False,
-                    "comment": "Domain verification record",
-                    "tags": [
-                        "owner:dns-team"
-                    ],
-                    "ttl": 3600,
-                    "locked": False,
-                    "zone_id": "023e105f4ecef8ad9ca31a8372d0c353",
-                    "zone_name": "example.com",
-                    "created_on": "2014-01-01T05:20:00.12345Z",
-                    "modified_on": "2014-01-01T05:20:00.12345Z",
-                    "data": {},
-                    "meta": {
-                    "auto_added": True,
-                    "source": "primary"
-                    }
-                }
-            ]
-            with patch(
-                "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.get_dns",
-                MagicMock(return_value=mock_dns)
-            ):
-                assert cloudflare_tunnel_module.get_dns("example.com") == {
-                    "id": "372e67954025e0ba6aaa6d586b9e0b59",
-                    "name": "test.example.com",
-                    "type": "A",
-                    "content": "198.51.100.4",
-                    "proxied": False,
-                    "zone_id": "023e105f4ecef8ad9ca31a8372d0c353",
-                }
+
+def test_get_dns_no_dns(mock_get_zone_id):
+    with patch(
+        "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.get_dns",
+        MagicMock(return_value=False)
+    ):
+        assert cloudflare_tunnel_module.get_dns("example.com") == False
+
+
+def test_get_dns_no_zone():
+    with patch(
+        "saltext.cloudflare_tunnel.modules.cloudflare_tunnel_mod._get_zone_id",
+        MagicMock(return_value=False)
+    ):
+        assert cloudflare_tunnel_module.get_dns("example.com") == False
 
 
 def test_get_tunnel_returns_tunnel():
@@ -86,31 +100,27 @@ def test_get_tunnel_returns_tunnel():
     #         }
     #     },
     # ):
-    dunder_salt = {
-        "config.get": MagicMock(return_value={}),
-    }
-    with patch.dict(cloudflare_tunnel_module.__salt__, dunder_salt):
-        ret_account_tag = 123456
-        ret_id = 12345
-        ret_name = "test-1234"
-        ret_status = "inactive"
+    ret_account_tag = 123456
+    ret_id = 12345
+    ret_name = "test-1234"
+    ret_status = "inactive"
 
-        mock_tunnel = [{
+    mock_tunnel = [{
+        "account_tag": ret_account_tag,
+        "id": ret_id,
+        "name": ret_name,
+        "status": ret_status,
+    }]
+    with patch(
+        "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.get_tunnel",
+        MagicMock(return_value=mock_tunnel),
+    ):
+        assert cloudflare_tunnel_module.get_tunnel("test-1234") == {
             "account_tag": ret_account_tag,
             "id": ret_id,
             "name": ret_name,
             "status": ret_status,
-        }]
-        with patch(
-            "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.get_tunnel",
-            MagicMock(return_value=mock_tunnel),
-        ):
-            assert cloudflare_tunnel_module.get_tunnel("test-1234") == {
-                "account_tag": ret_account_tag,
-                "id": ret_id,
-                "name": ret_name,
-                "status": ret_status,
-            }
+        }
 
 
 def test_get_tunnel_returns_nothing():
@@ -128,15 +138,11 @@ def test_get_tunnel_returns_nothing():
             }
         },
     ):
-        with patch.dict(
-            cloudflare_tunnel_module.__salt__, {"config.get": MagicMock(return_value={})}
+        with patch(
+            "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.get_tunnel",
+            MagicMock(return_value=[]),
         ):
-
-            with patch(
-                "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.get_tunnel",
-                MagicMock(return_value=[]),
-            ):
-                assert cloudflare_tunnel_module.get_tunnel("test-1234") == False
+            assert cloudflare_tunnel_module.get_tunnel("test-1234") == False
 
 
 def test_install_connector():
