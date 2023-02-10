@@ -2,6 +2,7 @@ from unittest.mock import MagicMock
 from unittest.mock import patch
 
 import pytest
+import salt.exceptions
 import saltext.cloudflare_tunnel.modules.cloudflare_tunnel_mod as cloudflare_tunnel_module
 
 
@@ -18,6 +19,8 @@ def configure_loader_modules():
         cloudflare_tunnel_module: module_globals,
     }
 
+## IS THIS HOW TO PROPERLY USE FIXTURE?
+## Need to learn more about how to use these
 @pytest.fixture
 def mock_get_zone_id():
     with patch(
@@ -28,7 +31,7 @@ def mock_get_zone_id():
 
 ## NEED TO TEST THE EXCEPTION I THINK as well.
 
-
+# Just pull the mock_dns return value directly from cloudflare API docs.
 def test_get_dns_returns_dns(mock_get_zone_id):
     mock_dns = [
         {
@@ -74,7 +77,8 @@ def test_get_dns_no_dns(mock_get_zone_id):
         "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.get_dns",
         MagicMock(return_value=False)
     ):
-        assert cloudflare_tunnel_module.get_dns("example.com") == False
+        with pytest.raises(salt.exceptions.ArgumentValueError):
+            assert cloudflare_tunnel_module.get_dns("example.com") == False
 
 
 def test_get_dns_no_zone():
@@ -82,7 +86,8 @@ def test_get_dns_no_zone():
         "saltext.cloudflare_tunnel.modules.cloudflare_tunnel_mod._get_zone_id",
         MagicMock(return_value=False)
     ):
-        assert cloudflare_tunnel_module.get_dns("example.com") == False
+        with pytest.raises(salt.exceptions.ArgumentValueError):
+            assert cloudflare_tunnel_module.get_dns("example.com") == False
 
 
 def test_get_tunnel_returns_tunnel():
@@ -142,7 +147,8 @@ def test_get_tunnel_returns_nothing():
             "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.get_tunnel",
             MagicMock(return_value=[]),
         ):
-            assert cloudflare_tunnel_module.get_tunnel("test-1234") == False
+            with pytest.raises(salt.exceptions.ArgumentValueError):
+                assert cloudflare_tunnel_module.get_tunnel("test-1234") == False
 
 
 def test_install_connector():

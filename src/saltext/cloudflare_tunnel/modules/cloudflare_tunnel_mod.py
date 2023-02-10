@@ -18,6 +18,7 @@ Module for Setting up Cloudflare Zero Trust Tunnels
 """
 import logging
 
+import salt.exceptions
 import salt.utils
 import saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod as cf_tunnel_utils
 
@@ -154,7 +155,7 @@ def get_tunnel(tunnel_name):
     tunnel = cf_tunnel_utils.get_tunnel(api_token, account, tunnel_name)
 
     if not tunnel:
-        return False
+        raise salt.exceptions.ArgumentValueError(f"Tunnel not found for {tunnel_name}")
 
     return _simple_tunnel(tunnel[0])
 
@@ -225,13 +226,13 @@ def get_dns(dns_name):
             dns_details = {}
             dns_details = dns[0]
         else:
-            return False
+            raise salt.exceptions.ArgumentValueError(f"DNS {dns_name} not found")
     else:
         # Need to log it?
         # Would be nice to return error message.
         # Just need to figure out how to check for False in an if
         # statement.
-        return False
+        raise salt.exceptions.ArgumentValueError(f"Zone not found for dns {dns_name}")
 
     return _simple_dns(dns_details)
 
