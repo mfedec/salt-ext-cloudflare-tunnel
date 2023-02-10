@@ -155,7 +155,7 @@ def get_tunnel(tunnel_name):
     tunnel = cf_tunnel_utils.get_tunnel(api_token, account, tunnel_name)
 
     if not tunnel:
-        raise salt.exceptions.ArgumentValueError(f"Tunnel not found for {tunnel_name}")
+        return False
 
     return _simple_tunnel(tunnel[0])
 
@@ -226,7 +226,7 @@ def get_dns(dns_name):
             dns_details = {}
             dns_details = dns[0]
         else:
-            raise salt.exceptions.ArgumentValueError(f"DNS {dns_name} not found")
+            return False
     else:
         # Need to log it?
         # Would be nice to return error message.

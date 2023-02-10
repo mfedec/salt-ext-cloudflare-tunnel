@@ -77,8 +77,7 @@ def test_get_dns_no_dns(mock_get_zone_id):
         "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.get_dns",
         MagicMock(return_value=False)
     ):
-        with pytest.raises(salt.exceptions.ArgumentValueError):
-            assert cloudflare_tunnel_module.get_dns("example.com") == False
+        assert cloudflare_tunnel_module.get_dns("example.com") == False
 
 
 def test_get_dns_no_zone():
@@ -147,8 +146,7 @@ def test_get_tunnel_returns_nothing():
             "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.get_tunnel",
             MagicMock(return_value=[]),
         ):
-            with pytest.raises(salt.exceptions.ArgumentValueError):
-                assert cloudflare_tunnel_module.get_tunnel("test-1234") == False
+            assert cloudflare_tunnel_module.get_tunnel("test-1234") == False
 
 
 def test_install_connector():
