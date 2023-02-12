@@ -85,6 +85,7 @@ def _simple_dns(dns):
         "content": dns["content"],
         "proxied": dns["proxied"],
         "zone_id": dns["zone_id"],
+        "comment": dns["comment"]
     }
 
 
@@ -106,11 +107,7 @@ def _get_tunnel_token(tunnel_id):
     api_token = __salt__["config.get"]("cloudflare").get("api_token")
     account = __salt__["config.get"]("cloudflare").get("account")
 
-    token = cf_tunnel_utils.get_tunnel_token(api_token, account, tunnel_id)
-
-    # Need to check to make sure token and not an error
-
-    return token
+    return cf_tunnel_utils.get_tunnel_token(api_token, account, tunnel_id)
 
 
 def _get_zone_id(domain_name):
@@ -228,10 +225,6 @@ def get_dns(dns_name):
         else:
             return False
     else:
-        # Need to log it?
-        # Would be nice to return error message.
-        # Just need to figure out how to check for False in an if
-        # statement.
         raise salt.exceptions.ArgumentValueError(f"Zone not found for dns {dns_name}")
 
     return _simple_dns(dns_details)
@@ -272,7 +265,7 @@ def create_dns(hostname, tunnel_id):
         else:
             dns = cf_tunnel_utils.create_dns(api_token, zone["id"], dns_data)
     else:
-        return (False, f"Cloudflare zone not found for hostname {hostname}")
+        raise salt.exceptions.ArgumentValueError(f"Cloudflare zone not found for hostname {hostname}")
 
     return _simple_dns(dns)
 
@@ -296,14 +289,9 @@ def remove_dns(hostname):
             log.info("DNS Entry %s has been removed", dns["name"])
             return True
         else:
-            log.error("There was an issue removing the DNS entry %s", hostname)
-            return False
+            raise salt.exceptions.CommandExecutionError("Issue removing DNS entry")
     else:
-        log.error("Could not find DNS entry for %s", hostname)
-        return False
-
-    log.error("There was an issue removing the DNS entry %s", hostname)
-    return False
+        raise salt.exceptions.ArgumentValueError(f"Could not find DNS entry for {hostname}")
 
 
 def get_tunnel_config(tunnel_id):
@@ -357,6 +345,9 @@ def create_tunnel_config(tunnel_id, hostname, url):
         api_token, account, tunnel_id, config_details
     )
 
+    if not tunnel_config:
+        raise salt.exceptions.CommandExecutionError("There was an issue creating the tunnel config")
+
     return _simple_config(tunnel_config)
 
 
@@ -388,7 +379,7 @@ def install_connector(tunnel_id):
     output = __salt__["cmd.run"](f"cloudflared service install {token}")
 
     if "installed successfully" not in output:
-        return False
+        raise salt.exceptions.CommandExecutionError("Error installing connector")
 
     return True
 
@@ -408,6 +399,6 @@ def remove_connector():
         output = __salt__["cmd.run"]("cloudflared service uninstall")
 
         if "uninstalled successfully" not in output:
-            return False
+            raise salt.exceptions.CommandExecutionError("Error uninstalling connector")
 
     return True

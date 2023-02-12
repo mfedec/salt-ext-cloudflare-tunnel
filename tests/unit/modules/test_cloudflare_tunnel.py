@@ -69,6 +69,7 @@ def test_get_dns_returns_dns(mock_get_zone_id):
             "content": "198.51.100.4",
             "proxied": False,
             "zone_id": "023e105f4ecef8ad9ca31a8372d0c353",
+            "comment": "Domain verification record"
         }
 
 
@@ -87,6 +88,50 @@ def test_get_dns_no_zone():
     ):
         with pytest.raises(salt.exceptions.ArgumentValueError):
             assert cloudflare_tunnel_module.get_dns("example.com") == False
+
+
+def test_create_dns_does_not_exist(mock_get_zone_id):
+    mock_dns = []
+    create_dns = {
+        "id": "372e67954025e0ba6aaa6d586b9e0b59",
+        "type": "CNAME",
+        "name": "test.example.com",
+        "content": "372e67954025e0ba6aaa6d586b9e0b59.cfargotunnel.com",
+        "proxiable": True,
+        "proxied": True,
+        "comment": "DNS managed by SaltStack",
+        "tags": [
+            "owner:dns-team"
+        ],
+        "ttl": 3600,
+        "locked": False,
+        "zone_id": "023e105f4ecef8ad9ca31a8372d0c353",
+        "zone_name": "example.com",
+        "created_on": "2014-01-01T05:20:00.12345Z",
+        "modified_on": "2014-01-01T05:20:00.12345Z",
+        "data": {},
+        "meta": {
+            "auto_added": True,
+            "source": "primary"
+        }
+      }
+    with patch(
+        "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.get_dns",
+        MagicMock(return_value=mock_dns)
+    ):
+        with patch(
+            "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.create_dns",
+            MagicMock(return_value=create_dns)
+        ):
+            assert cloudflare_tunnel_module.create_dns("test.example.com", "372e67954025e0ba6aaa6d586b9e0b59") == {
+                "id": "372e67954025e0ba6aaa6d586b9e0b59",
+                "name": "test.example.com",
+                "type": "CNAME",
+                "content": "372e67954025e0ba6aaa6d586b9e0b59.cfargotunnel.com",
+                "proxied": True,
+                "zone_id": "023e105f4ecef8ad9ca31a8372d0c353",
+                "comment": "DNS managed by SaltStack",
+            }
 
 
 def test_get_tunnel_returns_tunnel():
@@ -168,7 +213,8 @@ def test_install_connector_failed():
             cloudflare_tunnel_module.__salt__,
             {"cmd.run": MagicMock(return_value="provided token is invalid")},
         ):
-            assert cloudflare_tunnel_module.install_connector("12345") is False
+            with pytest.raises(salt.exceptions.CommandExecutionError):
+                assert cloudflare_tunnel_module.install_connector("12345")
 
 
 def test_is_service_available():
@@ -213,4 +259,5 @@ def test_remove_connector_failed():
             ),
         },
     ):
-        assert cloudflare_tunnel_module.remove_connector() is False
+        with pytest.raises(salt.exceptions.CommandExecutionError):
+            assert cloudflare_tunnel_module.remove_connector()

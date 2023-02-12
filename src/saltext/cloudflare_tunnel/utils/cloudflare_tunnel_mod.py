@@ -8,6 +8,8 @@ import logging
 import random
 import string
 
+import salt.exceptions
+
 try:
     import CloudFlare
 
@@ -59,7 +61,7 @@ def _get_client(api_token):
         client = CloudFlare.CloudFlare(token=api_token)
     except CloudFlare.exceptions.CloudFlareAPIError as exc:
         log.exception(exc)
-        return False
+        raise salt.exceptions.CommandExecutionError(exc)
 
     return client
 
@@ -80,7 +82,7 @@ def get_zone_id(api_token, domain_name):
         zone = client.zones.get(params={"name": domain_name})
     except CloudFlare.exceptions.CloudFlareAPIError as exc:
         log.exception(exc)
-        return False
+        raise salt.exceptions.CommandExecutionError(exc)
 
     return zone
 
@@ -104,7 +106,7 @@ def get_tunnel_token(api_token, account, tunnel_id):
         token = client.accounts.cfd_tunnel.token.get(account, tunnel_id)
     except CloudFlare.exceptions.CloudFlareAPIError as exc:
         log.exception(exc)
-        return False
+        raise salt.exceptions.CommandExecutionError(exc)
 
     return token
 
@@ -130,7 +132,7 @@ def get_tunnel(api_token, account, tunnel_name):
         )
     except CloudFlare.exceptions.CloudFlareAPIError as exc:
         log.exception(exc)
-        return False
+        raise salt.exceptions.CommandExecutionError(exc)
 
     return tunnel
 
@@ -161,7 +163,7 @@ def create_tunnel(api_token, account, tunnel_name):
         )
     except CloudFlare.exceptions.CloudFlareAPIError as exc:
         log.exception(exc)
-        return False
+        raise salt.exceptions.CommandExecutionError(exc)
 
     return tunnel
 
@@ -185,7 +187,7 @@ def remove_tunnel(api_token, account, tunnel_id):
         tunnel = client.accounts.cfd_tunnel.delete(account, tunnel_id)
     except CloudFlare.exceptions.CloudFlareAPIError as exc:
         log.exception(exc)
-        return False
+        raise salt.exceptions.CommandExecutionError(exc)
 
     return tunnel
 
@@ -209,7 +211,7 @@ def get_dns(api_token, zone_id, dns_name):
         dns = client.zones.dns_records.get(zone_id, params={"name": dns_name})
     except CloudFlare.exceptions.CloudFlareAPIError as exc:
         log.exception(exc)
-        return False
+        raise salt.exceptions.CommandExecutionError(exc)
 
     return dns
 
@@ -250,7 +252,7 @@ def create_dns(api_token, zone_id, dns_data, dns_id=None):
             dns = client.zones.dns_records.post(zone_id, data=dns_data)
     except CloudFlare.exceptions.CloudFlareAPIError as exc:
         log.exception(exc)
-        return False
+        raise salt.exceptions.CommandExecutionError(exc)
 
     return dns
 
@@ -274,7 +276,7 @@ def remove_dns(api_token, zone_id, dns_id):
         dns = client.zones.dns_records.delete(zone_id, dns_id)
     except CloudFlare.exceptions.CloudFlareAPIError as exc:
         log.exception(exc)
-        return False
+        raise salt.exceptions.CommandExecutionError(exc)
 
     return dns
 
@@ -298,7 +300,7 @@ def get_tunnel_config(api_token, account, tunnel_id):
         tunnel_config = client.accounts.cfd_tunnel.configurations.get(account, tunnel_id)
     except CloudFlare.exceptions.CloudFlareAPIError as exc:
         log.exception(exc)
-        return False
+        raise salt.exceptions.CommandExecutionError(exc)
 
     return tunnel_config
 
@@ -328,6 +330,6 @@ def create_tunnel_config(api_token, account, tunnel_id, config):
         )
     except CloudFlare.exceptions.CloudFlareAPIError as exc:
         log.exception(exc)
-        return False
+        raise salt.exceptions.CommandExecutionError(exc)
 
     return tunnel_config
