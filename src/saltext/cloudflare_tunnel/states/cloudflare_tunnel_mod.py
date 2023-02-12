@@ -85,6 +85,7 @@ def present(name, hostname, service):
         else:
             ret["result"] = False
             ret["comment"] = f"Failed to create the {name} tunnel"
+            return ret
 
     if create_config:
         if __opts__["test"]:
@@ -107,6 +108,7 @@ def present(name, hostname, service):
             ret["comment"] = "\n".join(
                 [ret["comment"], f"Failed to create tunnel config for {hostname}"]
             )
+            return ret
 
     if create_dns:
         if __opts__["test"]:
@@ -125,6 +127,7 @@ def present(name, hostname, service):
             ret["comment"] = "\n".join(
                 [ret["comment"], f"Failed to create {dns['name']} DNS entry"]
             )
+            return ret
 
     if config_service:
         if __opts__["test"]:
@@ -147,9 +150,11 @@ def present(name, hostname, service):
             else:
                 ret["result"] = False
                 ret["comment"] = "\n".join([ret["comment"], "Failed to configure connector"])
+                return ret
         else:
             ret["result"] = False
             ret["comment"] = "Tunnel not found, could not configure the connector"
+            return ret
 
     return ret
 
