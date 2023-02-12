@@ -173,7 +173,6 @@ def create_tunnel(tunnel_name):
     tunnel = get_tunnel(tunnel_name)
 
     if not tunnel:
-        # Tunnel not created or ever created in the past.
         tunnel = cf_tunnel_utils.create_tunnel(api_token, account, tunnel_name)
     else:
         return (False, f"Tunnel {tunnel_name} already exists")
@@ -196,11 +195,9 @@ def remove_tunnel(tunnel_id):
 
     tunnel = cf_tunnel_utils.remove_tunnel(api_token, account, tunnel_id)
     if tunnel:
-        log.info("Tunnel %s has been removed", tunnel["name"])
         return True
     else:
-        log.error("There was an issue removing the tunnel with id %s", tunnel_id)
-        return False
+        raise salt.exceptions.ArgumentValueError(f"Unable to find tunnel with id {tunnel_id}")
 
 
 def get_dns(dns_name):
@@ -286,7 +283,6 @@ def remove_dns(hostname):
     if dns:
         ret_dns = cf_tunnel_utils.remove_dns(api_token, dns["zone_id"], dns["id"])
         if ret_dns:
-            log.info("DNS Entry %s has been removed", dns["name"])
             return True
         else:
             raise salt.exceptions.CommandExecutionError("Issue removing DNS entry")
