@@ -10,14 +10,12 @@ import saltext.cloudflare_tunnel.modules.cloudflare_tunnel_mod as cloudflare_tun
 def configure_loader_modules():
     # return {cloudflare_tunnel_module: {}}
     module_globals = {
-        "__salt__": {
-            "config.get": MagicMock(return_value={})
-        },
-
+        "__salt__": {"config.get": MagicMock(return_value={})},
     }
     return {
         cloudflare_tunnel_module: module_globals,
     }
+
 
 ## IS THIS HOW TO PROPERLY USE FIXTURE?
 ## Need to learn more about how to use these
@@ -28,6 +26,7 @@ def mock_get_zone_id():
         MagicMock(return_value={"id": "1234ABC", "name": "example.com", "status": "active"}),
     ):
         yield
+
 
 ## NEED TO TEST THE EXCEPTION I THINK as well.
 
@@ -42,9 +41,7 @@ def test_get_dns_returns_dns(mock_get_zone_id):
             "proxiable": True,
             "proxied": False,
             "comment": "Domain verification record",
-            "tags": [
-                "owner:dns-team"
-            ],
+            "tags": ["owner:dns-team"],
             "ttl": 3600,
             "locked": False,
             "zone_id": "023e105f4ecef8ad9ca31a8372d0c353",
@@ -52,15 +49,12 @@ def test_get_dns_returns_dns(mock_get_zone_id):
             "created_on": "2014-01-01T05:20:00.12345Z",
             "modified_on": "2014-01-01T05:20:00.12345Z",
             "data": {},
-            "meta": {
-            "auto_added": True,
-            "source": "primary"
-            }
+            "meta": {"auto_added": True, "source": "primary"},
         }
     ]
     with patch(
         "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.get_dns",
-        MagicMock(return_value=mock_dns)
+        MagicMock(return_value=mock_dns),
     ):
         assert cloudflare_tunnel_module.get_dns("example.com") == {
             "id": "372e67954025e0ba6aaa6d586b9e0b59",
@@ -69,14 +63,14 @@ def test_get_dns_returns_dns(mock_get_zone_id):
             "content": "198.51.100.4",
             "proxied": False,
             "zone_id": "023e105f4ecef8ad9ca31a8372d0c353",
-            "comment": "Domain verification record"
+            "comment": "Domain verification record",
         }
 
 
 def test_get_dns_no_dns(mock_get_zone_id):
     with patch(
         "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.get_dns",
-        MagicMock(return_value=False)
+        MagicMock(return_value=False),
     ):
         assert cloudflare_tunnel_module.get_dns("example.com") == False
 
@@ -84,7 +78,7 @@ def test_get_dns_no_dns(mock_get_zone_id):
 def test_get_dns_no_zone():
     with patch(
         "saltext.cloudflare_tunnel.modules.cloudflare_tunnel_mod._get_zone_id",
-        MagicMock(return_value=False)
+        MagicMock(return_value=False),
     ):
         with pytest.raises(salt.exceptions.ArgumentValueError):
             assert cloudflare_tunnel_module.get_dns("example.com") == False
@@ -100,9 +94,7 @@ def test_create_dns_does_not_exist(mock_get_zone_id):
         "proxiable": True,
         "proxied": True,
         "comment": "DNS managed by SaltStack",
-        "tags": [
-            "owner:dns-team"
-        ],
+        "tags": ["owner:dns-team"],
         "ttl": 3600,
         "locked": False,
         "zone_id": "023e105f4ecef8ad9ca31a8372d0c353",
@@ -110,20 +102,19 @@ def test_create_dns_does_not_exist(mock_get_zone_id):
         "created_on": "2014-01-01T05:20:00.12345Z",
         "modified_on": "2014-01-01T05:20:00.12345Z",
         "data": {},
-        "meta": {
-            "auto_added": True,
-            "source": "primary"
-        }
-      }
+        "meta": {"auto_added": True, "source": "primary"},
+    }
     with patch(
         "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.get_dns",
-        MagicMock(return_value=mock_dns)
+        MagicMock(return_value=mock_dns),
     ):
         with patch(
             "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.create_dns",
-            MagicMock(return_value=create_dns)
+            MagicMock(return_value=create_dns),
         ):
-            assert cloudflare_tunnel_module.create_dns("test.example.com", "372e67954025e0ba6aaa6d586b9e0b59") == {
+            assert cloudflare_tunnel_module.create_dns(
+                "test.example.com", "372e67954025e0ba6aaa6d586b9e0b59"
+            ) == {
                 "id": "372e67954025e0ba6aaa6d586b9e0b59",
                 "name": "test.example.com",
                 "type": "CNAME",
@@ -154,12 +145,14 @@ def test_get_tunnel_returns_tunnel():
     ret_name = "test-1234"
     ret_status = "inactive"
 
-    mock_tunnel = [{
-        "account_tag": ret_account_tag,
-        "id": ret_id,
-        "name": ret_name,
-        "status": ret_status,
-    }]
+    mock_tunnel = [
+        {
+            "account_tag": ret_account_tag,
+            "id": ret_id,
+            "name": ret_name,
+            "status": ret_status,
+        }
+    ]
     with patch(
         "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.get_tunnel",
         MagicMock(return_value=mock_tunnel),

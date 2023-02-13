@@ -85,7 +85,7 @@ def _simple_dns(dns):
         "content": dns["content"],
         "proxied": dns["proxied"],
         "zone_id": dns["zone_id"],
-        "comment": dns["comment"]
+        "comment": dns["comment"],
     }
 
 
@@ -262,7 +262,9 @@ def create_dns(hostname, tunnel_id):
         else:
             dns = cf_tunnel_utils.create_dns(api_token, zone["id"], dns_data)
     else:
-        raise salt.exceptions.ArgumentValueError(f"Cloudflare zone not found for hostname {hostname}")
+        raise salt.exceptions.ArgumentValueError(
+            f"Cloudflare zone not found for hostname {hostname}"
+        )
 
     return _simple_dns(dns)
 
