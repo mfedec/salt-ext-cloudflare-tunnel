@@ -95,8 +95,7 @@ def _simple_config(tunnel_config):
     """
     return {
         "tunnel_id": tunnel_config["tunnel_id"],
-        "hostname": tunnel_config["config"]["ingress"][0]["hostname"],
-        "service": tunnel_config["config"]["ingress"][0]["service"],
+        "ingress": tunnel_config["config"]["ingress"],
     }
 
 

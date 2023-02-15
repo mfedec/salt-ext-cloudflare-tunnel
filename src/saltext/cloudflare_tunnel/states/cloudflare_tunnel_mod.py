@@ -18,26 +18,31 @@ def __virtual__():
     return __virtualname__
 
 
-def present(name, hostname, service):
+def present(name, ingress_rules):
     """
     .. code-block: yaml
         ensure cloudflare tunnel is present
 
         cloudflare_tunnel.present:
             - name: test_cf_tunnel
-            - hostname: name.domain.com
-            - service: https://127.0.0.1:8000
+            - ingress:
+                - hostname: name.domain.com
+                  service: https://127.0.0.1:8000
 
     The following parameters are required:
 
     name
         This is the name of the Cloudflare Tunnel to create
 
+    ingress
+        These are the rules to add, can specify multiple
+
+        It will also add a default catch-all rule
+
     """
     ret = {"name": name, "changes": {}, "result": None, "comment": ""}
 
     tunnel = __salt__["cloudflare_tunnel.get_tunnel"](name)
-    dns = __salt__["cloudflare_tunnel.get_dns"](hostname)
 
     create_tunnel = True
     create_dns = True
@@ -49,9 +54,20 @@ def present(name, hostname, service):
         if tunnel["name"] == name:
             create_tunnel = False
 
+        print(ingress_rules)
+        print(config["ingress"])
+        if ingress_rules in config["ingress"]:
+            print("yup")
+        else:
+            print("nope")
+
+        return True
         if config:
             if config["hostname"] == hostname and config["service"] == service:
                 create_config = False
+
+    # will need to loop through each rule to pull out the hostname
+    dns = __salt__["cloudflare_tunnel.get_dns"](hostname)
 
     if dns and tunnel:
         if (
