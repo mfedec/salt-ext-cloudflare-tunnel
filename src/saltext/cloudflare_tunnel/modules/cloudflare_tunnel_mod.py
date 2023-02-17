@@ -95,7 +95,7 @@ def _simple_config(tunnel_config):
     """
     return {
         "tunnel_id": tunnel_config["tunnel_id"],
-        "ingress": tunnel_config["config"]["ingress"],
+        "config": tunnel_config["config"]
     }
 
 
@@ -311,35 +311,29 @@ def get_tunnel_config(tunnel_id):
     return _simple_config(tunnel_config)
 
 
-def create_tunnel_config(tunnel_id, hostname, url):
+def create_tunnel_config(tunnel_id, config):
     """
     Create a cloudflare tunnel configuration
+
+    See https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/tunnel-guide/local/local-management/configuration-file/
+    for config options
+
+    Automatically adds the catch-all rule http_status:404
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt '*' cloudflare_tunnel.create_tunnel_config <tunnel uuid> sub.domain.com https://127.0.0.1
+        salt '*' cloudflare_tunnel.create_tunnel_config <tunnel uuid> '{warp-routing: {enabled: false},originRequest: { connectTimeout: 10 },ingress : [{hostname": "test", "service": "https://localhost:8000" }]}'
     """
     api_token = __salt__["config.get"]("cloudflare").get("api_token")
     account = __salt__["config.get"]("cloudflare").get("account")
 
-    config_details = {
-        "config": {
-            "ingress": [
-                {
-                    "service": url,
-                    "hostname": hostname,
-                },
-                {
-                    "service": "http_status:404",
-                },
-            ]
-        }
-    }
+    if {"service": "http_status:404"} not in config["ingress"]:
+        config["ingress"].append({"service": "http_status:404"})
 
     tunnel_config = cf_tunnel_utils.create_tunnel_config(
-        api_token, account, tunnel_id, config_details
+        api_token, account, tunnel_id, {"config": config}
     )
 
     if not tunnel_config:

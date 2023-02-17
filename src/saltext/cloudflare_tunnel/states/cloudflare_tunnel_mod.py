@@ -18,16 +18,23 @@ def __virtual__():
     return __virtualname__
 
 
-def present(name, ingress_rules):
+def present(name, config):
     """
     .. code-block: yaml
         ensure cloudflare tunnel is present
 
         cloudflare_tunnel.present:
             - name: test_cf_tunnel
-            - ingress:
-                - hostname: name.domain.com
-                  service: https://127.0.0.1:8000
+            - config
+                warp_routing: False
+                ingress:
+                    - hostname: name.domain.com
+                      service: https://127.0.0.1:8000
+                      path: test-past
+                      originRequest:
+                        httpHostheader: something
+                    - hostname: another.domain.com
+                      service: http://127.0.0.1:8080
 
     The following parameters are required:
 
