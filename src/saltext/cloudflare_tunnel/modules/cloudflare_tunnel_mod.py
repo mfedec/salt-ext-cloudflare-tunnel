@@ -324,7 +324,7 @@ def create_tunnel_config(tunnel_id, config):
 
     .. code-block:: bash
 
-        salt '*' cloudflare_tunnel.create_tunnel_config <tunnel uuid> '{warp-routing: {enabled: false},originRequest: { connectTimeout: 10 },ingress : [{hostname": "test", "service": "https://localhost:8000" }]}'
+        salt '*' cloudflare_tunnel.create_tunnel_config <tunnel uuid> '{ingress : [{hostname": "test", "service": "https://localhost:8000" }]}'
     """
     api_token = __salt__["config.get"]("cloudflare").get("api_token")
     account = __salt__["config.get"]("cloudflare").get("account")

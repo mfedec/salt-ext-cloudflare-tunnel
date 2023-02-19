@@ -25,16 +25,13 @@ def present(name, config):
 
         cloudflare_tunnel.present:
             - name: test_cf_tunnel
-            - config
-                warp_routing: False
-                ingress:
-                    - hostname: name.domain.com
-                      service: https://127.0.0.1:8000
-                      path: test-past
-                      originRequest:
-                        httpHostheader: something
-                    - hostname: another.domain.com
-                      service: http://127.0.0.1:8080
+                - hostname: name.domain.com
+                  service: https://127.0.0.1:8000
+                  path: test-past
+                  originRequest:
+                    httpHostheader: something
+                - hostname: another.domain.com
+                  service: http://127.0.0.1:8080
 
     The following parameters are required:
 
