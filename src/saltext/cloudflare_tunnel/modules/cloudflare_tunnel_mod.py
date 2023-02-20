@@ -1,3 +1,4 @@
+# pylint: disable=unused-import
 """
 Module for Setting up Cloudflare Zero Trust Tunnels
 
@@ -312,7 +313,9 @@ def create_tunnel_config(tunnel_id, config):
     """
     Create a cloudflare tunnel configuration
 
-    See https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/tunnel-guide/local/local-management/configuration-file/
+    See https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup
+    /tunnel-guide/local/local-management/configuration-file/
+
     for config options
 
     Automatically adds the catch-all rule http_status:404
@@ -321,7 +324,8 @@ def create_tunnel_config(tunnel_id, config):
 
     .. code-block:: bash
 
-        salt '*' cloudflare_tunnel.create_tunnel_config <tunnel uuid> '{ingress : [{hostname": "test", "service": "https://localhost:8000" }]}'
+        salt '*' cloudflare_tunnel.create_tunnel_config <tunnel uuid> \
+            '{ingress : [{hostname": "test", "service": "https://localhost:8000" }]}'
     """
     api_token = __salt__["config.get"]("cloudflare").get("api_token")
     account = __salt__["config.get"]("cloudflare").get("account")

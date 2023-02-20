@@ -108,7 +108,7 @@ def present(name, ingress):
 
     if create_config:
         if __opts__["test"]:
-            ret["comment"] = f"Tunnel config will be created"
+            ret["comment"] = "Tunnel config will be created"
             return ret
 
         tunnel_config = __salt__["cloudflare_tunnel.create_tunnel_config"](
@@ -119,10 +119,10 @@ def present(name, ingress):
             ret["changes"].setdefault("tunnel config created", "config")
 
             ret["result"] = True
-            ret["comment"] = "\n".join([ret["comment"], f"Tunnel config was created"])
+            ret["comment"] = "\n".join([ret["comment"], "Tunnel config was created"])
         else:
             ret["result"] = False
-            ret["comment"] = "\n".join([ret["comment"], f"Failed to create tunnel config"])
+            ret["comment"] = "\n".join([ret["comment"], "Failed to create tunnel config"])
             return ret
 
     if create_dns:
