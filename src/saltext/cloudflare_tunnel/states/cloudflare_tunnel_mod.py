@@ -62,7 +62,7 @@ def present(name, ingress):
 
         if config:
             for rule in ingress:
-                if (rule not in config["config"]["ingress"]):
+                if rule not in config["config"]["ingress"]:
                     create_config = True
     else:
         create_config = True
@@ -119,36 +119,33 @@ def present(name, ingress):
             ret["changes"].setdefault("tunnel config created", "config")
 
             ret["result"] = True
-            ret["comment"] = "\n".join(
-                [ret["comment"], f"Tunnel config was created"]
-            )
+            ret["comment"] = "\n".join([ret["comment"], f"Tunnel config was created"])
         else:
             ret["result"] = False
-            ret["comment"] = "\n".join(
-                [ret["comment"], f"Failed to create tunnel config"]
-            )
+            ret["comment"] = "\n".join([ret["comment"], f"Failed to create tunnel config"])
             return ret
 
     if create_dns:
         for dns in create_dns:
             if __opts__["test"]:
-                ret["comment"] = "\n".join(
-                    [ret["comment"], f"DNS {dns} will be created"]
-                )
+                ret["comment"] = "\n".join([ret["comment"], f"DNS {dns} will be created"])
                 return ret
 
             dns = __salt__["cloudflare_tunnel.create_dns"](dns, tunnel["id"])
 
             if dns:
-                ret["changes"][dns["name"]] = {"content": dns["content"], "type": dns["type"], "proxied": dns["proxied"], "comment": dns["comment"]}
+                ret["changes"][dns["name"]] = {
+                    "content": dns["content"],
+                    "type": dns["type"],
+                    "proxied": dns["proxied"],
+                    "comment": dns["comment"],
+                }
 
                 ret["result"] = True
                 ret["comment"] = "\n".join([ret["comment"], f"DNS entry {dns} was created"])
             else:
                 ret["result"] = False
-                ret["comment"] = "\n".join(
-                    [ret["comment"], f"Failed to create {dns} DNS entry"]
-                )
+                ret["comment"] = "\n".join([ret["comment"], f"Failed to create {dns} DNS entry"])
 
         return ret
 

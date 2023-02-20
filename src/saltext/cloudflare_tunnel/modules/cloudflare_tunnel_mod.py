@@ -93,10 +93,7 @@ def _simple_config(tunnel_config):
     """
     Simplify the results returned from the API
     """
-    return {
-        "tunnel_id": tunnel_config["tunnel_id"],
-        "config": tunnel_config["config"]
-    }
+    return {"tunnel_id": tunnel_config["tunnel_id"], "config": tunnel_config["config"]}
 
 
 def _get_tunnel_token(tunnel_id):
