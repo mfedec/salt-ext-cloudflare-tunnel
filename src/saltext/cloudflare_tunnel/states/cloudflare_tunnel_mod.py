@@ -18,22 +18,21 @@ def __virtual__():
     return __virtualname__
 
 
-def present(name, config):
+def present(name, ingress):
     """
     .. code-block: yaml
         ensure cloudflare tunnel is present
 
         cloudflare_tunnel.present:
             - name: test_cf_tunnel
-                - config:
-                    ingress:
-                        - hostname: name.domain.com
-                          service: https://127.0.0.1:8000
-                          path: test-past
-                          originRequest:
-                            httpHostheader: something
-                        - hostname: another.domain.com
-                          service: http://127.0.0.1:8080
+            - ingress:
+                - hostname: name.domain.com
+                  service: https://127.0.0.1:8000
+                  path: test-past
+                  originRequest:
+                    httpHostheader: something
+                - hostname: another.domain.com
+                  service: http://127.0.0.1:8080
 
     The following parameters are required:
 
@@ -51,38 +50,36 @@ def present(name, config):
     tunnel = __salt__["cloudflare_tunnel.get_tunnel"](name)
 
     create_tunnel = True
-    create_dns = True
-    create_config = True
+    create_dns = []
+    create_config = False
     config_service = True
 
     if tunnel:
-        config = __salt__["cloudflare_tunnel.get_tunnel_config"](tunnel["id"])
         if tunnel["name"] == name:
             create_tunnel = False
 
-        print(ingress_rules)
-        print(config["ingress"])
-        if ingress_rules in config["ingress"]:
-            print("yup")
-        else:
-            print("nope")
+        config = __salt__["cloudflare_tunnel.get_tunnel_config"](tunnel["id"])
 
-        return True
         if config:
-            if config["hostname"] == hostname and config["service"] == service:
-                create_config = False
+            for rule in ingress:
+                if (rule not in config["config"]["ingress"]):
+                    create_config = True
+    else:
+        create_config = True
 
-    # will need to loop through each rule to pull out the hostname
-    dns = __salt__["cloudflare_tunnel.get_dns"](hostname)
+    for rule in ingress:
+        if "hostname" in rule:
+            dns = __salt__["cloudflare_tunnel.get_dns"](rule["hostname"])
 
-    if dns and tunnel:
-        if (
-            dns["name"] == hostname
-            # and dns["content"] == "{}.cfargotunnel.com".format(tunnel["id"])
-            and dns["content"] == f"{tunnel['id']}.cfargotunnel.com"
-            and dns["proxied"]
-        ):
-            create_dns = False
+            if dns and tunnel:
+                if (
+                    dns["name"] != rule["hostname"]
+                    and dns["content"] != f"{tunnel['id']}.cfargotunnel.com"
+                    and dns["proxied"]
+                ):
+                    create_dns.append(dns["name"])
+            else:
+                create_dns.append(rule["hostname"])
 
     if __salt__["cloudflare_tunnel.is_connector_installed"]():
         config_service = False
@@ -111,45 +108,49 @@ def present(name, config):
 
     if create_config:
         if __opts__["test"]:
-            ret["comment"] = f"Tunnel {hostname} config will be created"
+            ret["comment"] = f"Tunnel config will be created"
             return ret
 
         tunnel_config = __salt__["cloudflare_tunnel.create_tunnel_config"](
-            tunnel["id"], hostname, service
+            tunnel["id"], {"ingress": ingress}
         )
 
         if tunnel_config:
-            ret["changes"].setdefault("tunnel config created", hostname)
+            ret["changes"].setdefault("tunnel config created", "config")
 
             ret["result"] = True
             ret["comment"] = "\n".join(
-                [ret["comment"], f"Tunnel config for {hostname} was created"]
+                [ret["comment"], f"Tunnel config was created"]
             )
         else:
             ret["result"] = False
             ret["comment"] = "\n".join(
-                [ret["comment"], f"Failed to create tunnel config for {hostname}"]
+                [ret["comment"], f"Failed to create tunnel config"]
             )
             return ret
 
     if create_dns:
-        if __opts__["test"]:
-            ret["comment"] = f"DNS {hostname} will be created"
-            return ret
+        for dns in create_dns:
+            if __opts__["test"]:
+                ret["comment"] = "\n".join(
+                    [ret["comment"], f"DNS {dns} will be created"]
+                )
+                return ret
 
-        dns = __salt__["cloudflare_tunnel.create_dns"](hostname, tunnel["id"])
+            dns = __salt__["cloudflare_tunnel.create_dns"](dns, tunnel["id"])
 
-        if dns:
-            ret["changes"].setdefault("dns created", dns["name"])
+            if dns:
+                ret["changes"][dns["name"]] = {"content": dns["content"], "type": dns["type"], "proxied": dns["proxied"], "comment": dns["comment"]}
 
-            ret["result"] = True
-            ret["comment"] = "\n".join([ret["comment"], f"DNS entry {dns['name']} was created"])
-        else:
-            ret["result"] = False
-            ret["comment"] = "\n".join(
-                [ret["comment"], f"Failed to create {dns['name']} DNS entry"]
-            )
-            return ret
+                ret["result"] = True
+                ret["comment"] = "\n".join([ret["comment"], f"DNS entry {dns} was created"])
+            else:
+                ret["result"] = False
+                ret["comment"] = "\n".join(
+                    [ret["comment"], f"Failed to create {dns} DNS entry"]
+                )
+
+        return ret
 
     if config_service:
         if __opts__["test"]:
