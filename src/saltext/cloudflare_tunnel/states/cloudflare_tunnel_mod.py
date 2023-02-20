@@ -221,19 +221,27 @@ def absent(name):
                 ret["result"] = False
                 return ret
 
-            dns = __salt__["cloudflare_tunnel.get_dns"](tunnel_config["hostname"])
-            if dns:
-                dns_name = dns["name"]
-                if __salt__["cloudflare_tunnel.remove_dns"](dns["name"]):
-                    ret["comment"] = "\n".join(
-                        [ret["comment"], f"DNS entry {dns_name} has been removed"]
-                    )
-                    ret["changes"].setdefault("dns", f"removed {dns_name}")
-                    ret["result"] = True
-                else:
-                    ret["comment"] = f"Failed to remove DNS entry {dns_name}"
-                    ret["result"] = False
-                    return ret
+            dns_changes = []
+            for rule in tunnel_config["config"]["ingress"]:
+                if "hostname" in rule:
+                    hostname = rule["hostname"]
+
+                    dns = __salt__["cloudflare_tunnel.get_dns"](hostname)
+                    if dns:
+                        dns_name = dns["name"]
+                        if __salt__["cloudflare_tunnel.remove_dns"](dns["name"]):
+                            ret["comment"] = "\n".join(
+                                [ret["comment"], f"DNS entry {dns_name} has been removed"]
+                            )
+                            # ret["changes"][dns["name"]] = "removed"
+                            dns_changes.append(f"{dns_name} removed")
+                            ret["result"] = True
+                        else:
+                            ret["comment"] = f"Failed to remove DNS entry {dns_name}"
+                            ret["result"] = False
+                            return ret
+
+            ret["changes"]["dns"] = dns_changes
 
         if __salt__["cloudflare_tunnel.remove_tunnel"](tunnel["id"]):
             ret["comment"] = "\n".join(
