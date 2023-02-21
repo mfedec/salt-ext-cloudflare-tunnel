@@ -17,8 +17,8 @@ def configure_loader_modules():
     }
 
 
-## IS THIS HOW TO PROPERLY USE FIXTURE?
-## Need to learn more about how to use these
+# IS THIS HOW TO PROPERLY USE FIXTURE?
+# Need to learn more about how to use these
 @pytest.fixture
 def mock_get_zone_id():
     with patch(
@@ -28,10 +28,11 @@ def mock_get_zone_id():
         yield
 
 
-## NEED TO TEST THE EXCEPTION I THINK as well.
+# NEED TO TEST THE EXCEPTION I THINK as well.
 
 # Just pull the mock_dns return value directly from cloudflare API docs.
 def test_get_dns_returns_dns(mock_get_zone_id):
+    zone_id = mock_get_zone_id
     mock_dns = [
         {
             "id": "372e67954025e0ba6aaa6d586b9e0b59",
@@ -68,11 +69,12 @@ def test_get_dns_returns_dns(mock_get_zone_id):
 
 
 def test_get_dns_no_dns(mock_get_zone_id):
+    zone_id = mock_get_zone_id
     with patch(
         "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.get_dns",
         MagicMock(return_value=False),
     ):
-        assert cloudflare_tunnel_module.get_dns("example.com") == False
+        assert cloudflare_tunnel_module.get_dns("example.com") is False
 
 
 def test_get_dns_no_zone():
@@ -81,10 +83,11 @@ def test_get_dns_no_zone():
         MagicMock(return_value=False),
     ):
         with pytest.raises(salt.exceptions.ArgumentValueError):
-            assert cloudflare_tunnel_module.get_dns("example.com") == False
+            assert cloudflare_tunnel_module.get_dns("example.com") is False
 
 
 def test_create_dns_does_not_exist(mock_get_zone_id):
+    zone_id = mock_get_zone_id
     mock_dns = []
     create_dns = {
         "id": "372e67954025e0ba6aaa6d586b9e0b59",
@@ -126,7 +129,7 @@ def test_create_dns_does_not_exist(mock_get_zone_id):
 
 
 def test_get_tunnel_returns_tunnel():
-    ## Not sure what exactly this patch.dict is doing.. works with or without it..
+    # Not sure what exactly this patch.dict is doing.. works with or without it..
     # with patch.dict(
     #     cloudflare_tunnel_module.__pillar__,
     #     {
@@ -166,7 +169,7 @@ def test_get_tunnel_returns_tunnel():
 
 
 def test_get_tunnel_returns_nothing():
-    ## Not sure what exactly this patch.dict is doing.. works with or without it..
+    # Not sure what exactly this patch.dict is doing.. works with or without it..
     with patch.dict(
         cloudflare_tunnel_module.__pillar__,
         {
@@ -184,7 +187,7 @@ def test_get_tunnel_returns_nothing():
             "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.get_tunnel",
             MagicMock(return_value=[]),
         ):
-            assert cloudflare_tunnel_module.get_tunnel("test-1234") == False
+            assert cloudflare_tunnel_module.get_tunnel("test-1234") is False
 
 
 def test_install_connector():
