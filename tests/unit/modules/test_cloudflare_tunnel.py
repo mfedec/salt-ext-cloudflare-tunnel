@@ -30,6 +30,7 @@ def mock_get_zone_id():
 
 # NEED TO TEST THE EXCEPTION I THINK as well.
 
+
 # Just pull the mock_dns return value directly from cloudflare API docs.
 def test_get_dns_returns_dns(mock_get_zone_id):
     zone_id = mock_get_zone_id
