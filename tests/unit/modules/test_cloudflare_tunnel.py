@@ -8,9 +8,15 @@ import saltext.cloudflare_tunnel.modules.cloudflare_tunnel_mod as cloudflare_tun
 
 @pytest.fixture
 def configure_loader_modules():
-    # return {cloudflare_tunnel_module: {}}
     module_globals = {
-        "__salt__": {"config.get": MagicMock(return_value={})},
+        "__salt__": {
+            "config.get": MagicMock(
+                return_value={
+                    "api_token": "AS0KLASDOK1201KASD1KJ1239ASKJD123",
+                    "account": "AS1AELASDOK1201KASD1KJ1239ASADD12",
+                }
+            )
+        },
     }
     return {
         cloudflare_tunnel_module: module_globals,
@@ -32,8 +38,7 @@ def mock_get_zone_id():
 
 
 # Just pull the mock_dns return value directly from cloudflare API docs.
-def test_get_dns_returns_dns(mock_get_zone_id):
-    zone_id = mock_get_zone_id
+def test_get_dns_returns_dns(mock_get_zone_id):  # pylint: disable=unused-argument
     mock_dns = [
         {
             "id": "372e67954025e0ba6aaa6d586b9e0b59",
@@ -69,8 +74,7 @@ def test_get_dns_returns_dns(mock_get_zone_id):
         }
 
 
-def test_get_dns_no_dns(mock_get_zone_id):
-    zone_id = mock_get_zone_id
+def test_get_dns_no_dns(mock_get_zone_id):  # pylint: disable=unused-argument
     with patch(
         "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.get_dns",
         MagicMock(return_value=False),
@@ -87,8 +91,7 @@ def test_get_dns_no_zone():
             assert cloudflare_tunnel_module.get_dns("example.com") is False
 
 
-def test_create_dns_does_not_exist(mock_get_zone_id):
-    zone_id = mock_get_zone_id
+def test_create_dns_does_not_exist(mock_get_zone_id):  # pylint: disable=unused-argument
     mock_dns = []
     create_dns = {
         "id": "372e67954025e0ba6aaa6d586b9e0b59",
