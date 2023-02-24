@@ -34,9 +34,96 @@ def mock_get_zone_id():
         yield
 
 
+def test_create_dns_if_does_not_exist(mock_get_zone_id):  # pylint: disable=unused-argument
+    mock_dns = {
+        "id": "372e67954025e0ba6aaa6d586b9e0b59",
+        "type": "A",
+        "name": "test.example.com",
+        "content": "198.51.100.4",
+        "proxiable": True,
+        "proxied": False,
+        "comment": "Domain verification record",
+        "tags": ["owner:dns-team"],
+        "ttl": 3600,
+        "locked": False,
+        "zone_id": "023e105f4ecef8ad9ca31a8372d0c353",
+        "zone_name": "example.com",
+        "created_on": "2014-01-01T05:20:00.12345Z",
+        "modified_on": "2014-01-01T05:20:00.12345Z",
+        "data": {},
+        "meta": {"auto_added": True, "source": "primary"},
+    }
+
+    expected_result = {
+        "id": "372e67954025e0ba6aaa6d586b9e0b59",
+        "name": "test.example.com",
+        "type": "A",
+        "content": "198.51.100.4",
+        "proxied": False,
+        "zone_id": "023e105f4ecef8ad9ca31a8372d0c353",
+        "comment": "Domain verification record",
+    }
+
+    with patch(
+        "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.get_dns", MagicMock(return_value=[])
+    ):
+        with patch(
+            "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.create_dns",
+            MagicMock(return_value=mock_dns),
+        ):
+            assert (
+                cloudflare_tunnel_module.create_dns("example.com", "134129123912SADASD91231SAD")
+                == expected_result
+            )
+
+
+def test_create_dns_if_exist(mock_get_zone_id):  # pylint: disable=unused-argument
+    mock_dns = [
+        {
+            "id": "372e67954025e0ba6aaa6d586b9e0b59",
+            "type": "A",
+            "name": "test.example.com",
+            "content": "198.51.100.4",
+            "proxiable": True,
+            "proxied": False,
+            "comment": "Domain verification record",
+            "tags": ["owner:dns-team"],
+            "ttl": 3600,
+            "locked": False,
+            "zone_id": "023e105f4ecef8ad9ca31a8372d0c353",
+            "zone_name": "example.com",
+            "created_on": "2014-01-01T05:20:00.12345Z",
+            "modified_on": "2014-01-01T05:20:00.12345Z",
+            "data": {},
+            "meta": {"auto_added": True, "source": "primary"},
+        }
+    ]
+
+    expected_result = {
+        "id": "372e67954025e0ba6aaa6d586b9e0b59",
+        "name": "test.example.com",
+        "type": "A",
+        "content": "198.51.100.4",
+        "proxied": False,
+        "zone_id": "023e105f4ecef8ad9ca31a8372d0c353",
+        "comment": "Domain verification record",
+    }
+
+    with patch(
+        "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.get_dns",
+        MagicMock(return_value=mock_dns),
+    ):
+        with patch(
+            "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.create_dns",
+            MagicMock(return_value=mock_dns[0]),
+        ):
+            assert (
+                cloudflare_tunnel_module.create_dns("example.com", "134129123912SADASD91231SAD")
+                == expected_result
+            )
+
+
 # NEED TO TEST THE EXCEPTION I THINK as well.
-
-
 # Just pull the mock_dns return value directly from cloudflare API docs.
 def test_get_dns_returns_dns(mock_get_zone_id):  # pylint: disable=unused-argument
     mock_dns = [
