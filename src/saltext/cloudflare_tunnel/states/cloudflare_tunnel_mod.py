@@ -116,7 +116,7 @@ def present(name, ingress):
         )
 
         if tunnel_config:
-            ret["changes"].setdefault("tunnel config created", "config")
+            ret["changes"].setdefault("tunnel config", "created/updated")
 
             ret["result"] = True
         else:
