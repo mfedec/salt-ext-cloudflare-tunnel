@@ -34,6 +34,87 @@ def mock_get_zone_id():
         yield
 
 
+def test_remove_dns_error_returned(mock_get_zone_id):
+    mock_dns = [
+        {
+            "id": "372e67954025e0ba6aaa6d586b9e0b59",
+            "type": "A",
+            "name": "test.example.com",
+            "content": "198.51.100.4",
+            "proxiable": True,
+            "proxied": False,
+            "comment": "Domain verification record",
+            "tags": ["owner:dns-team"],
+            "ttl": 3600,
+            "locked": False,
+            "zone_id": "023e105f4ecef8ad9ca31a8372d0c353",
+            "zone_name": "example.com",
+            "created_on": "2014-01-01T05:20:00.12345Z",
+            "modified_on": "2014-01-01T05:20:00.12345Z",
+            "data": {},
+            "meta": {"auto_added": True, "source": "primary"},
+        }
+    ]
+
+    mock_remove = False
+
+    with patch(
+        "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.get_dns",
+        MagicMock(return_value=mock_dns),
+    ):
+        with patch(
+            "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.remove_dns",
+            MagicMock(return_value=mock_remove),
+        ):
+            with pytest.raises(salt.exceptions.CommandExecutionError, match="Issue removing DNS entry"):
+                assert cloudflare_tunnel_module.remove_dns("test.example.com")
+
+
+def test_remove_dns_does_not_exist(mock_get_zone_id):
+    mock_dns = []
+
+    with patch(
+        "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.get_dns",
+        MagicMock(return_value=mock_dns),
+    ):
+        with pytest.raises(salt.exceptions.ArgumentValueError, match="Could not find DNS entry for test.example.com"):
+            assert cloudflare_tunnel_module.remove_dns("test.example.com")
+
+def test_remove_dns(mock_get_zone_id):
+    mock_dns = [
+        {
+            "id": "372e67954025e0ba6aaa6d586b9e0b59",
+            "type": "A",
+            "name": "test.example.com",
+            "content": "198.51.100.4",
+            "proxiable": True,
+            "proxied": False,
+            "comment": "Domain verification record",
+            "tags": ["owner:dns-team"],
+            "ttl": 3600,
+            "locked": False,
+            "zone_id": "023e105f4ecef8ad9ca31a8372d0c353",
+            "zone_name": "example.com",
+            "created_on": "2014-01-01T05:20:00.12345Z",
+            "modified_on": "2014-01-01T05:20:00.12345Z",
+            "data": {},
+            "meta": {"auto_added": True, "source": "primary"},
+        }
+    ]
+
+    mock_remove = {"id": "372e67954025e0ba6aaa6d586b9e0b59"}
+
+    with patch(
+        "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.get_dns",
+        MagicMock(return_value=mock_dns),
+    ):
+        with patch(
+            "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.remove_dns",
+            MagicMock(return_value=mock_remove),
+        ):
+            assert cloudflare_tunnel_module.remove_dns("test.example.com") is True
+
+
 def test_create_dns_if_does_not_exist(mock_get_zone_id):  # pylint: disable=unused-argument
     mock_dns = {
         "id": "372e67954025e0ba6aaa6d586b9e0b59",
