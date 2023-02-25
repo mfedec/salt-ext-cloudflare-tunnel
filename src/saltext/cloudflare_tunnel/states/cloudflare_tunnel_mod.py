@@ -119,7 +119,6 @@ def present(name, ingress):
             ret["changes"].setdefault("tunnel config created", "config")
 
             ret["result"] = True
-            ret["comment"] = "\n".join([ret["comment"], "Tunnel config was created"])
         else:
             ret["result"] = False
             ret["comment"] = "\n".join([ret["comment"], "Failed to create tunnel config"])
@@ -142,7 +141,6 @@ def present(name, ingress):
                 }
 
                 ret["result"] = True
-                ret["comment"] = "\n".join([ret["comment"], f"DNS entry {dns} was created"])
             else:
                 ret["result"] = False
                 ret["comment"] = "\n".join([ret["comment"], f"Failed to create {dns} DNS entry"])
@@ -210,7 +208,6 @@ def absent(name):
         if tunnel_config:
             connector = __salt__["cloudflare_tunnel.remove_connector"]()
             if connector:
-                ret["comment"] = "Cloudflare connector has been removed"
                 ret["changes"].setdefault("connector", "removed")
                 ret["result"] = True
             else:
@@ -227,10 +224,6 @@ def absent(name):
                     if dns:
                         dns_name = dns["name"]
                         if __salt__["cloudflare_tunnel.remove_dns"](dns["name"]):
-                            ret["comment"] = "\n".join(
-                                [ret["comment"], f"DNS entry {dns_name} has been removed"]
-                            )
-                            # ret["changes"][dns["name"]] = "removed"
                             dns_changes.append(f"{dns_name} removed")
                             ret["result"] = True
                         else:
