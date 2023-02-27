@@ -169,10 +169,10 @@ def create_tunnel(tunnel_name):
 
     tunnel = get_tunnel(tunnel_name)
 
-    if not tunnel:
-        tunnel = cf_tunnel_utils.create_tunnel(api_token, account, tunnel_name)
-    else:
+    if tunnel:
         return (False, f"Tunnel {tunnel_name} already exists")
+    else:
+        tunnel = cf_tunnel_utils.create_tunnel(api_token, account, tunnel_name)
 
     return _simple_tunnel(tunnel)
 

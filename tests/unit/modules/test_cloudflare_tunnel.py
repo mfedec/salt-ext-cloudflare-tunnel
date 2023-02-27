@@ -321,29 +321,45 @@ def test_get_tunnel_returns_tunnel():
     #         }
     #     },
     # ):
-    ret_account_tag = 123456
-    ret_id = 12345
-    ret_name = "test-1234"
-    ret_status = "inactive"
 
-    mock_tunnel = [
-        {
-            "account_tag": ret_account_tag,
-            "id": ret_id,
-            "name": ret_name,
-            "status": ret_status,
-        }
-    ]
+    mock_tunnel = [{
+        "id": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415",
+        "account_tag": "699d98642c564d2e855e9661899b7252",
+        "created_at": "2021-01-25T18:22:34.317854Z",
+        "deleted_at": "2009-11-10T23:00:00Z",
+        "name": "blog",
+        "connections": [
+            {
+                "colo_name": "DFW",
+                "uuid": "1bedc50d-42b3-473c-b108-ff3d10c0d925",
+                "id": "1bedc50d-42b3-473c-b108-ff3d10c0d925",
+                "is_pending_reconnect": False,
+                "origin_ip": "85.12.78.6",
+                "opened_at": "2021-01-25T18:22:34.317854Z",
+                "client_id": "1bedc50d-42b3-473c-b108-ff3d10c0d925",
+                "client_version": "2022.7.1"
+            }
+        ],
+        "conns_active_at": "2009-11-10T23:00:00Z",
+        "conns_inactive_at": "2009-11-10T23:00:00Z",
+        "tun_type": "cfd_tunnel",
+        "metadata": {},
+        "status": "healthy",
+        "remote_config": True
+    }]
+
+    expected_result = {
+        "status": "healthy",
+        "id": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415",
+        "name": "blog",
+        "account_tag": "699d98642c564d2e855e9661899b7252"
+    }
+
     with patch(
         "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.get_tunnel",
         MagicMock(return_value=mock_tunnel),
     ):
-        assert cloudflare_tunnel_module.get_tunnel("test-1234") == {
-            "account_tag": ret_account_tag,
-            "id": ret_id,
-            "name": ret_name,
-            "status": ret_status,
-        }
+        assert cloudflare_tunnel_module.get_tunnel("test-1234") == expected_result
 
 
 def test_get_tunnel_returns_nothing():
@@ -366,6 +382,87 @@ def test_get_tunnel_returns_nothing():
             MagicMock(return_value=[]),
         ):
             assert cloudflare_tunnel_module.get_tunnel("test-1234") is False
+
+
+def test_create_tunnel_returns_tunnel():
+    mock_tunnel = {
+        "id": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415",
+        "account_tag": "699d98642c564d2e855e9661899b7252",
+        "created_at": "2021-01-25T18:22:34.317854Z",
+        "deleted_at": "2009-11-10T23:00:00Z",
+        "name": "blog",
+        "connections": [
+            {
+                "colo_name": "DFW",
+                "uuid": "1bedc50d-42b3-473c-b108-ff3d10c0d925",
+                "id": "1bedc50d-42b3-473c-b108-ff3d10c0d925",
+                "is_pending_reconnect": False,
+                "origin_ip": "85.12.78.6",
+                "opened_at": "2021-01-25T18:22:34.317854Z",
+                "client_id": "1bedc50d-42b3-473c-b108-ff3d10c0d925",
+                "client_version": "2022.7.1"
+            }
+        ],
+        "conns_active_at": "2009-11-10T23:00:00Z",
+        "conns_inactive_at": "2009-11-10T23:00:00Z",
+        "tun_type": "cfd_tunnel",
+        "metadata": {},
+        "status": "healthy",
+        "remote_config": True
+    }
+
+    expected_result = {
+        "status": "healthy",
+        "id": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415",
+        "name": "blog",
+        "account_tag": "699d98642c564d2e855e9661899b7252"
+    }
+
+    with patch(
+        "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.get_tunnel",
+        MagicMock(return_value={})
+    ):
+        with patch(
+            "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.create_tunnel",
+            MagicMock(return_value=mock_tunnel)
+        ):
+            assert cloudflare_tunnel_module.create_tunnel("blog") == expected_result
+
+
+def test_create_tunnel_already_exists():
+    mock_tunnel = [{
+        "id": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415",
+        "account_tag": "699d98642c564d2e855e9661899b7252",
+        "created_at": "2021-01-25T18:22:34.317854Z",
+        "deleted_at": "2009-11-10T23:00:00Z",
+        "name": "blog",
+        "connections": [
+            {
+                "colo_name": "DFW",
+                "uuid": "1bedc50d-42b3-473c-b108-ff3d10c0d925",
+                "id": "1bedc50d-42b3-473c-b108-ff3d10c0d925",
+                "is_pending_reconnect": False,
+                "origin_ip": "85.12.78.6",
+                "opened_at": "2021-01-25T18:22:34.317854Z",
+                "client_id": "1bedc50d-42b3-473c-b108-ff3d10c0d925",
+                "client_version": "2022.7.1"
+            }
+        ],
+        "conns_active_at": "2009-11-10T23:00:00Z",
+        "conns_inactive_at": "2009-11-10T23:00:00Z",
+        "tun_type": "cfd_tunnel",
+        "metadata": {},
+        "status": "healthy",
+        "remote_config": True
+    }]
+
+    expected_result = (False, "Tunnel blog already exists")
+
+    with patch(
+        "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.get_tunnel",
+        MagicMock(return_value=mock_tunnel)
+    ):
+        assert cloudflare_tunnel_module.create_tunnel("blog") == expected_result
 
 
 def test_install_connector():
