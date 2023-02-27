@@ -73,17 +73,15 @@ def test_remove_dns_error_returned(mock_get_zone_id):  # pylint: disable=unused-
 
 
 def test_remove_dns_does_not_exist(mock_get_zone_id):  # pylint: disable=unused-argument
-    mock_dns = []
-
     with patch(
         "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.get_dns",
-        MagicMock(return_value=mock_dns),
+        MagicMock(return_value=[]),
     ):
         with pytest.raises(
             salt.exceptions.ArgumentValueError,
             match="Could not find DNS entry for test.example.com",
         ):
-            assert cloudflare_tunnel_module.remove_dns("test.example.com")
+            cloudflare_tunnel_module.remove_dns("test.example.com")
 
 
 def test_remove_dns(mock_get_zone_id):  # pylint: disable=unused-argument
@@ -463,6 +461,51 @@ def test_create_tunnel_already_exists():
         MagicMock(return_value=mock_tunnel)
     ):
         assert cloudflare_tunnel_module.create_tunnel("blog") == expected_result
+
+
+def test_remove_tunnel_successful():
+    mock_tunnel = {
+        "id": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415",
+        "account_tag": "699d98642c564d2e855e9661899b7252",
+        "created_at": "2021-01-25T18:22:34.317854Z",
+        "deleted_at": "2009-11-10T23:00:00Z",
+        "name": "blog",
+        "connections": [
+            {
+                "colo_name": "DFW",
+                "uuid": "1bedc50d-42b3-473c-b108-ff3d10c0d925",
+                "id": "1bedc50d-42b3-473c-b108-ff3d10c0d925",
+                "is_pending_reconnect": False,
+                "origin_ip": "85.12.78.6",
+                "opened_at": "2021-01-25T18:22:34.317854Z",
+                "client_id": "1bedc50d-42b3-473c-b108-ff3d10c0d925",
+                "client_version": "2022.7.1"
+            }
+        ],
+        "conns_active_at": "2009-11-10T23:00:00Z",
+        "conns_inactive_at": "2009-11-10T23:00:00Z",
+        "tun_type": "cfd_tunnel",
+        "metadata": {},
+        "status": "healthy",
+        "remote_config": True
+    }
+
+    with patch(
+        "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.remove_tunnel",
+        MagicMock(return_value=mock_dns)
+    ):
+        assert cloudflare_tunnel_module.remove_tunnel("f70ff985-a4ef-4643-bbbc-4a0ed4fc8415") is True
+
+def test_remove_tunnel_does_not_exist():
+    with patch(
+        "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.remove_tunnel",
+        MagicMock(return_value=None)
+    ):
+        with pytest.raises(
+            salt.exceptions.ArgumentValueError,
+            match="Unable to find tunnel with id f70ff985-a4ef-4643-bbbc-4a0ed4fc8415",
+        ):
+            cloudflare_tunnel_module.remove_tunnel("f70ff985-a4ef-4643-bbbc-4a0ed4fc8415")
 
 
 def test_install_connector():
