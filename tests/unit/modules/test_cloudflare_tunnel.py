@@ -263,47 +263,6 @@ def test_get_dns_no_zone():
             assert cloudflare_tunnel_module.get_dns("example.com") is False
 
 
-def test_create_dns_does_not_exist(mock_get_zone_id):  # pylint: disable=unused-argument
-    mock_dns = []
-    create_dns = {
-        "id": "372e67954025e0ba6aaa6d586b9e0b59",
-        "type": "CNAME",
-        "name": "test.example.com",
-        "content": "372e67954025e0ba6aaa6d586b9e0b59.cfargotunnel.com",
-        "proxiable": True,
-        "proxied": True,
-        "comment": "DNS managed by SaltStack",
-        "tags": ["owner:dns-team"],
-        "ttl": 3600,
-        "locked": False,
-        "zone_id": "023e105f4ecef8ad9ca31a8372d0c353",
-        "zone_name": "example.com",
-        "created_on": "2014-01-01T05:20:00.12345Z",
-        "modified_on": "2014-01-01T05:20:00.12345Z",
-        "data": {},
-        "meta": {"auto_added": True, "source": "primary"},
-    }
-    with patch(
-        "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.get_dns",
-        MagicMock(return_value=mock_dns),
-    ):
-        with patch(
-            "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.create_dns",
-            MagicMock(return_value=create_dns),
-        ):
-            assert cloudflare_tunnel_module.create_dns(
-                "test.example.com", "372e67954025e0ba6aaa6d586b9e0b59"
-            ) == {
-                "id": "372e67954025e0ba6aaa6d586b9e0b59",
-                "name": "test.example.com",
-                "type": "CNAME",
-                "content": "372e67954025e0ba6aaa6d586b9e0b59.cfargotunnel.com",
-                "proxied": True,
-                "zone_id": "023e105f4ecef8ad9ca31a8372d0c353",
-                "comment": "DNS managed by SaltStack",
-            }
-
-
 def test_get_tunnel_returns_tunnel():
     # Not sure what exactly this patch.dict is doing.. works with or without it..
     # with patch.dict(
@@ -492,9 +451,10 @@ def test_remove_tunnel_successful():
 
     with patch(
         "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.remove_tunnel",
-        MagicMock(return_value=mock_dns)
+        MagicMock(return_value=mock_tunnel)
     ):
         assert cloudflare_tunnel_module.remove_tunnel("f70ff985-a4ef-4643-bbbc-4a0ed4fc8415") is True
+
 
 def test_remove_tunnel_does_not_exist():
     with patch(
@@ -506,6 +466,66 @@ def test_remove_tunnel_does_not_exist():
             match="Unable to find tunnel with id f70ff985-a4ef-4643-bbbc-4a0ed4fc8415",
         ):
             cloudflare_tunnel_module.remove_tunnel("f70ff985-a4ef-4643-bbbc-4a0ed4fc8415")
+
+
+def test_get_tunnel_config():
+    mock_result = {
+        "config": {
+            "warp-routing": {
+                "enabled": True
+            },
+            "originRequest" : {
+                "connectTimeout": 10
+            },
+            "ingress" : [
+                {"hostname": "test", "service": "https://localhost:8000" },
+                {"service": "http_status:404"}
+            ]
+        },
+        "tunnel_id": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415",
+        "version": 15,
+        "created_at": "2021-01-25T18:22:34.317854Z"
+    }
+
+    expected_result = {
+        "tunnel_id": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415",
+        "config": {
+            "warp-routing": {
+                "enabled": True
+            },
+            "originRequest" : {
+                "connectTimeout": 10
+            },
+            "ingress" : [
+                {"hostname": "test", "service": "https://localhost:8000" },
+                {"service": "http_status:404"}
+            ]
+        }
+    }
+
+    with patch(
+        "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.get_tunnel_config",
+        MagicMock(return_value=mock_result)
+    ):
+        assert cloudflare_tunnel_module.get_tunnel_config("f70ff985-a4ef-4643-bbbc-4a0ed4fc8415") == expected_result
+
+
+def test_get_tunnel_config_does_not_exist():
+    mock_result = {
+        "config": None,
+        "tunnel_id": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415",
+        "version": 15,
+        "created_at": "2021-01-25T18:22:34.317854Z"
+    }
+
+    expected_result = False
+
+    with patch(
+        "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.get_tunnel_config",
+        MagicMock(return_value=mock_result)
+    ):
+        assert cloudflare_tunnel_module.get_tunnel_config("f70ff985-a4ef-4643-bbbc-4a0ed4fc8415") is expected_result
+
 
 
 def test_install_connector():
