@@ -6,12 +6,85 @@ import saltext.cloudflare_tunnel.modules.cloudflare_tunnel_mod as cloudflare_tun
 import saltext.cloudflare_tunnel.states.cloudflare_tunnel_mod as cloudflare_tunnel_state
 
 
+mock_tunnel = {
+    "status": "healthy",
+    "id": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415",
+    "name": "cf_tunnel_example",
+    "account_tag": "699d98642c564d2e855e9661899b7252",
+}
+
+mock_config = {
+    "tunnel_id": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415",
+    "config": {
+        "warp-routing": {"enabled": True},
+        "originRequest": {"connectTimeout": 10},
+        "ingress": [
+            {"hostname": "test", "service": "https://localhost:8000"},
+            {"service": "http_status:404"},
+        ],
+    },
+}
+
+mock_dns = {
+    "id": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415",
+    "name": "test.example.com",
+    "type": "CNAME",
+    "content": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415.cf_argotunnel.com",
+    "proxied": True,
+    "zone_id": "023e105f4ecef8ad9ca31a8372d0c353",
+    "comment": "Managed by SaltStack",
+}
+
+mock_config_multiple = {
+    "tunnel_id": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415",
+    "config": {
+        "warp-routing": {"enabled": True},
+        "originRequest": {"connectTimeout": 10},
+        "ingress": [
+            {"hostname": "test", "service": "https://localhost:8000"},
+            {"hostname": "test-2", "service": "https://localhost:443"},
+            {"hostname": "test-3", "service": "https://localhost:7474"},
+            {"service": "http_status:404"},
+        ],
+    },
+}
+
+mock_dns_multiple = [
+    {
+        "id": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415",
+        "name": "test.example.com",
+        "type": "CNAME",
+        "content": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415.cf_argotunnel.com",
+        "proxied": True,
+        "zone_id": "023e105f4ecef8ad9ca31a8372d0c353",
+        "comment": "Managed by SaltStack",
+    },
+    {
+        "id": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415",
+        "name": "test-2.example.com",
+        "type": "CNAME",
+        "content": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415.cf_argotunnel.com",
+        "proxied": True,
+        "zone_id": "023e105f4ecef8ad9ca31a8372d0c353",
+        "comment": "Managed by SaltStack",
+    },
+    {
+        "id": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415",
+        "name": "test-3.example.com",
+        "type": "CNAME",
+        "content": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415.cf_argotunnel.com",
+        "proxied": True,
+        "zone_id": "023e105f4ecef8ad9ca31a8372d0c353",
+        "comment": "Managed by SaltStack",
+    },
+]
+
+
 @pytest.fixture
 def configure_loader_modules():
     return {
         cloudflare_tunnel_module: {
-            "__salt__": {
-            },
+            "__salt__": {},
         },
         cloudflare_tunnel_state: {
             "__salt__": {
@@ -21,45 +94,90 @@ def configure_loader_modules():
     }
 
 
+def test_absent():
+    expected_result = {
+        "name": "cf_tunnel_example",
+        "changes": {
+            "connector": "removed",
+            "dns": ["test.example.com removed"],
+            "tunnel": "removed cf_tunnel_example",
+        },
+        "result": True,
+        "comment": "Cloudflare Tunnel cf_tunnel_example has been removed",
+    }
+
+    with patch.dict(
+        cloudflare_tunnel_state.__salt__,
+        {
+            "cloudflare_tunnel.get_tunnel": MagicMock(return_value=mock_tunnel),
+            "cloudflare_tunnel.get_tunnel_config": MagicMock(return_value=mock_config),
+            "cloudflare_tunnel.remove_connector": MagicMock(return_value=True),
+            "cloudflare_tunnel.get_dns": MagicMock(return_value=mock_dns),
+            "cloudflare_tunnel.remove_tunnel": MagicMock(return_value=True),
+            "cloudflare_tunnel.remove_dns": MagicMock(return_value=True),
+        },
+    ):
+        with patch.dict(cloudflare_tunnel_state.__opts__, {"test": False}):
+            assert cloudflare_tunnel_state.absent("cf_tunnel_example") == expected_result
+
+
+def test_absent_multiple_dns():
+    expected_result = {
+        "name": "cf_tunnel_example",
+        "changes": {
+            "connector": "removed",
+            "dns": [
+                "test.example.com removed",
+                "test-2.example.com removed",
+                "test-3.example.com removed",
+            ],
+            "tunnel": "removed cf_tunnel_example",
+        },
+        "result": True,
+        "comment": "Cloudflare Tunnel cf_tunnel_example has been removed",
+    }
+
+    with patch.dict(
+        cloudflare_tunnel_state.__salt__,
+        {
+            "cloudflare_tunnel.get_tunnel": MagicMock(return_value=mock_tunnel),
+            "cloudflare_tunnel.get_tunnel_config": MagicMock(return_value=mock_config_multiple),
+            "cloudflare_tunnel.remove_connector": MagicMock(return_value=True),
+            "cloudflare_tunnel.get_dns": MagicMock(side_effect=mock_dns_multiple),
+            "cloudflare_tunnel.remove_tunnel": MagicMock(return_value=True),
+            "cloudflare_tunnel.remove_dns": MagicMock(return_value=True),
+        },
+    ):
+        with patch.dict(cloudflare_tunnel_state.__opts__, {"test": False}):
+            assert cloudflare_tunnel_state.absent("cf_tunnel_example") == expected_result
+
+
 def test_absent_no_changes():
     expected_result = {
         "name": "cf_tunnel_example",
         "changes": {},
         "result": True,
-        "comment": "Cloudflare Tunnel cf_tunnel_example does not exist"
+        "comment": "Cloudflare Tunnel cf_tunnel_example does not exist",
     }
 
     with patch.dict(
         cloudflare_tunnel_state.__salt__,
-        {
-            "cloudflare_tunnel.get_tunnel": MagicMock(return_value={})
-        }
+        {"cloudflare_tunnel.get_tunnel": MagicMock(return_value={})},
     ):
         assert cloudflare_tunnel_state.absent("cf_tunnel_example") == expected_result
 
 
 def test_absent_changes_test_mode():
-    mock_tunnel = {
-        "status": "healthy",
-        "id": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415",
-        "name": "cf_tunnel_example",
-        "account_tag": "699d98642c564d2e855e9661899b7252"
-    }
-
     expected_result = {
         "name": "cf_tunnel_example",
         "changes": {},
         "result": None,
-        "comment": "Cloudflare Tunnel cf_tunnel_example will be deleted"
+        "comment": "Cloudflare Tunnel cf_tunnel_example will be deleted",
     }
 
     with patch.dict(
         cloudflare_tunnel_state.__salt__,
-        {
-            "cloudflare_tunnel.get_tunnel": MagicMock(return_value=mock_tunnel)
-        }
+        {"cloudflare_tunnel.get_tunnel": MagicMock(return_value=mock_tunnel)},
     ):
-        with patch.dict(
-            cloudflare_tunnel_state.__opts__, { "test": True }
-        ):
+        with patch.dict(cloudflare_tunnel_state.__opts__, {"test": True}):
             assert cloudflare_tunnel_state.absent("cf_tunnel_example") == expected_result

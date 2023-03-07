@@ -234,9 +234,7 @@ def absent(name):
             ret["changes"]["dns"] = dns_changes
 
         if __salt__["cloudflare_tunnel.remove_tunnel"](tunnel["id"]):
-            ret["comment"] = "\n".join(
-                [ret["comment"], f"Cloudflare Tunnel {tunnel_name} has been removed"]
-            )
+            ret["comment"] = f"Cloudflare Tunnel {tunnel_name} has been removed"
             ret["changes"].setdefault("tunnel", f"removed {tunnel_name}")
             ret["result"] = True
         else:
