@@ -181,3 +181,26 @@ def test_absent_changes_test_mode():
     ):
         with patch.dict(cloudflare_tunnel_state.__opts__, {"test": True}):
             assert cloudflare_tunnel_state.absent("cf_tunnel_example") == expected_result
+
+
+def test_absent_tunnel_does_not_exist():
+    expected_result = {
+        "name": "cf_tunnel_example",
+        "changes": {},
+        "result": True,
+        "comment": "Cloudflare Tunnel cf_tunnel_example does not exist"
+    }
+
+    with patch.dict(
+        cloudflare_tunnel_state.__salt__,
+        {"cloudflare_tunnel.get_tunnel": MagicMock(return_value=False)},
+    ):
+        assert cloudflare_tunnel_state.absent("cf_tunnel_example") == expected_result
+
+
+
+
+
+
+
+
