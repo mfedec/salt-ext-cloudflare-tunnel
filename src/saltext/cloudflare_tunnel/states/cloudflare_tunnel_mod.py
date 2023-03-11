@@ -64,6 +64,8 @@ def present(name, ingress):
             for rule in ingress:
                 if rule not in config["config"]["ingress"]:
                     create_config = True
+        else:
+            create_config = True
     else:
         create_config = True
 
@@ -114,11 +116,12 @@ def present(name, ingress):
         ret["result"] = True
 
     if create_dns:
-        for dns in create_dns:
-            if __opts__["test"]:
+        if __opts__["test"]:
+            for dns in create_dns:
                 ret["comment"] = "\n".join([ret["comment"], f"DNS {dns} will be created"])
-                return ret
+            return ret
 
+        for dns in create_dns:
             dns = __salt__["cloudflare_tunnel.create_dns"](dns, tunnel["id"])
 
             ret["changes"][dns["name"]] = {
