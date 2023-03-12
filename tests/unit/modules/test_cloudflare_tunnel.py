@@ -67,8 +67,7 @@ def test_remove_dns_error_returned(mock_get_zone_id):  # pylint: disable=unused-
             MagicMock(return_value=mock_remove),
         ):
             with pytest.raises(
-                salt.exceptions.CommandExecutionError,
-                match="Issue removing DNS entry"
+                salt.exceptions.CommandExecutionError, match="Issue removing DNS entry"
             ):
                 assert cloudflare_tunnel_module.remove_dns("test.example.com")
 
@@ -157,7 +156,10 @@ def test_create_dns_if_does_not_exist(mock_get_zone_id):  # pylint: disable=unus
             "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.create_dns",
             MagicMock(return_value=mock_dns),
         ):
-            assert cloudflare_tunnel_module.create_dns("example.com", "134129123912SADASD91231SAD") == expected_result
+            assert (
+                cloudflare_tunnel_module.create_dns("example.com", "134129123912SADASD91231SAD")
+                == expected_result
+            )
 
 
 def test_create_dns_if_exist(mock_get_zone_id):  # pylint: disable=unused-argument
@@ -279,37 +281,39 @@ def test_get_tunnel_returns_tunnel():
     #     },
     # ):
 
-    mock_tunnel = [{
-        "id": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415",
-        "account_tag": "699d98642c564d2e855e9661899b7252",
-        "created_at": "2021-01-25T18:22:34.317854Z",
-        "deleted_at": "2009-11-10T23:00:00Z",
-        "name": "blog",
-        "connections": [
-            {
-                "colo_name": "DFW",
-                "uuid": "1bedc50d-42b3-473c-b108-ff3d10c0d925",
-                "id": "1bedc50d-42b3-473c-b108-ff3d10c0d925",
-                "is_pending_reconnect": False,
-                "origin_ip": "85.12.78.6",
-                "opened_at": "2021-01-25T18:22:34.317854Z",
-                "client_id": "1bedc50d-42b3-473c-b108-ff3d10c0d925",
-                "client_version": "2022.7.1"
-            }
-        ],
-        "conns_active_at": "2009-11-10T23:00:00Z",
-        "conns_inactive_at": "2009-11-10T23:00:00Z",
-        "tun_type": "cfd_tunnel",
-        "metadata": {},
-        "status": "healthy",
-        "remote_config": True
-    }]
+    mock_tunnel = [
+        {
+            "id": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415",
+            "account_tag": "699d98642c564d2e855e9661899b7252",
+            "created_at": "2021-01-25T18:22:34.317854Z",
+            "deleted_at": "2009-11-10T23:00:00Z",
+            "name": "blog",
+            "connections": [
+                {
+                    "colo_name": "DFW",
+                    "uuid": "1bedc50d-42b3-473c-b108-ff3d10c0d925",
+                    "id": "1bedc50d-42b3-473c-b108-ff3d10c0d925",
+                    "is_pending_reconnect": False,
+                    "origin_ip": "85.12.78.6",
+                    "opened_at": "2021-01-25T18:22:34.317854Z",
+                    "client_id": "1bedc50d-42b3-473c-b108-ff3d10c0d925",
+                    "client_version": "2022.7.1",
+                }
+            ],
+            "conns_active_at": "2009-11-10T23:00:00Z",
+            "conns_inactive_at": "2009-11-10T23:00:00Z",
+            "tun_type": "cfd_tunnel",
+            "metadata": {},
+            "status": "healthy",
+            "remote_config": True,
+        }
+    ]
 
     expected_result = {
         "status": "healthy",
         "id": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415",
         "name": "blog",
-        "account_tag": "699d98642c564d2e855e9661899b7252"
+        "account_tag": "699d98642c564d2e855e9661899b7252",
     }
 
     with patch(
@@ -357,7 +361,7 @@ def test_create_tunnel_returns_tunnel():
                 "origin_ip": "85.12.78.6",
                 "opened_at": "2021-01-25T18:22:34.317854Z",
                 "client_id": "1bedc50d-42b3-473c-b108-ff3d10c0d925",
-                "client_version": "2022.7.1"
+                "client_version": "2022.7.1",
             }
         ],
         "conns_active_at": "2009-11-10T23:00:00Z",
@@ -365,59 +369,61 @@ def test_create_tunnel_returns_tunnel():
         "tun_type": "cfd_tunnel",
         "metadata": {},
         "status": "healthy",
-        "remote_config": True
+        "remote_config": True,
     }
 
     expected_result = {
         "status": "healthy",
         "id": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415",
         "name": "blog",
-        "account_tag": "699d98642c564d2e855e9661899b7252"
+        "account_tag": "699d98642c564d2e855e9661899b7252",
     }
 
     with patch(
         "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.get_tunnel",
-        MagicMock(return_value={})
+        MagicMock(return_value={}),
     ):
         with patch(
             "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.create_tunnel",
-            MagicMock(return_value=mock_tunnel)
+            MagicMock(return_value=mock_tunnel),
         ):
             assert cloudflare_tunnel_module.create_tunnel("blog") == expected_result
 
 
 def test_create_tunnel_already_exists():
-    mock_tunnel = [{
-        "id": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415",
-        "account_tag": "699d98642c564d2e855e9661899b7252",
-        "created_at": "2021-01-25T18:22:34.317854Z",
-        "deleted_at": "2009-11-10T23:00:00Z",
-        "name": "blog",
-        "connections": [
-            {
-                "colo_name": "DFW",
-                "uuid": "1bedc50d-42b3-473c-b108-ff3d10c0d925",
-                "id": "1bedc50d-42b3-473c-b108-ff3d10c0d925",
-                "is_pending_reconnect": False,
-                "origin_ip": "85.12.78.6",
-                "opened_at": "2021-01-25T18:22:34.317854Z",
-                "client_id": "1bedc50d-42b3-473c-b108-ff3d10c0d925",
-                "client_version": "2022.7.1"
-            }
-        ],
-        "conns_active_at": "2009-11-10T23:00:00Z",
-        "conns_inactive_at": "2009-11-10T23:00:00Z",
-        "tun_type": "cfd_tunnel",
-        "metadata": {},
-        "status": "healthy",
-        "remote_config": True
-    }]
+    mock_tunnel = [
+        {
+            "id": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415",
+            "account_tag": "699d98642c564d2e855e9661899b7252",
+            "created_at": "2021-01-25T18:22:34.317854Z",
+            "deleted_at": "2009-11-10T23:00:00Z",
+            "name": "blog",
+            "connections": [
+                {
+                    "colo_name": "DFW",
+                    "uuid": "1bedc50d-42b3-473c-b108-ff3d10c0d925",
+                    "id": "1bedc50d-42b3-473c-b108-ff3d10c0d925",
+                    "is_pending_reconnect": False,
+                    "origin_ip": "85.12.78.6",
+                    "opened_at": "2021-01-25T18:22:34.317854Z",
+                    "client_id": "1bedc50d-42b3-473c-b108-ff3d10c0d925",
+                    "client_version": "2022.7.1",
+                }
+            ],
+            "conns_active_at": "2009-11-10T23:00:00Z",
+            "conns_inactive_at": "2009-11-10T23:00:00Z",
+            "tun_type": "cfd_tunnel",
+            "metadata": {},
+            "status": "healthy",
+            "remote_config": True,
+        }
+    ]
 
     expected_result = (False, "Tunnel blog already exists")
 
     with patch(
         "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.get_tunnel",
-        MagicMock(return_value=mock_tunnel)
+        MagicMock(return_value=mock_tunnel),
     ):
         assert cloudflare_tunnel_module.create_tunnel("blog") == expected_result
 
@@ -438,7 +444,7 @@ def test_remove_tunnel_successful():
                 "origin_ip": "85.12.78.6",
                 "opened_at": "2021-01-25T18:22:34.317854Z",
                 "client_id": "1bedc50d-42b3-473c-b108-ff3d10c0d925",
-                "client_version": "2022.7.1"
+                "client_version": "2022.7.1",
             }
         ],
         "conns_active_at": "2009-11-10T23:00:00Z",
@@ -446,20 +452,22 @@ def test_remove_tunnel_successful():
         "tun_type": "cfd_tunnel",
         "metadata": {},
         "status": "healthy",
-        "remote_config": True
+        "remote_config": True,
     }
 
     with patch(
         "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.remove_tunnel",
-        MagicMock(return_value=mock_tunnel)
+        MagicMock(return_value=mock_tunnel),
     ):
-        assert cloudflare_tunnel_module.remove_tunnel("f70ff985-a4ef-4643-bbbc-4a0ed4fc8415") is True
+        assert (
+            cloudflare_tunnel_module.remove_tunnel("f70ff985-a4ef-4643-bbbc-4a0ed4fc8415") is True
+        )
 
 
 def test_remove_tunnel_does_not_exist():
     with patch(
         "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.remove_tunnel",
-        MagicMock(return_value=None)
+        MagicMock(return_value=None),
     ):
         with pytest.raises(
             salt.exceptions.ArgumentValueError,
@@ -471,43 +479,38 @@ def test_remove_tunnel_does_not_exist():
 def test_get_tunnel_config():
     mock_result = {
         "config": {
-            "warp-routing": {
-                "enabled": True
-            },
-            "originRequest" : {
-                "connectTimeout": 10
-            },
-            "ingress" : [
-                {"hostname": "test", "service": "https://localhost:8000" },
-                {"service": "http_status:404"}
-            ]
+            "warp-routing": {"enabled": True},
+            "originRequest": {"connectTimeout": 10},
+            "ingress": [
+                {"hostname": "test", "service": "https://localhost:8000"},
+                {"service": "http_status:404"},
+            ],
         },
         "tunnel_id": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415",
         "version": 15,
-        "created_at": "2021-01-25T18:22:34.317854Z"
+        "created_at": "2021-01-25T18:22:34.317854Z",
     }
 
     expected_result = {
         "tunnel_id": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415",
         "config": {
-            "warp-routing": {
-                "enabled": True
-            },
-            "originRequest" : {
-                "connectTimeout": 10
-            },
-            "ingress" : [
-                {"hostname": "test", "service": "https://localhost:8000" },
-                {"service": "http_status:404"}
-            ]
-        }
+            "warp-routing": {"enabled": True},
+            "originRequest": {"connectTimeout": 10},
+            "ingress": [
+                {"hostname": "test", "service": "https://localhost:8000"},
+                {"service": "http_status:404"},
+            ],
+        },
     }
 
     with patch(
         "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.get_tunnel_config",
-        MagicMock(return_value=mock_result)
+        MagicMock(return_value=mock_result),
     ):
-        assert cloudflare_tunnel_module.get_tunnel_config("f70ff985-a4ef-4643-bbbc-4a0ed4fc8415") == expected_result
+        assert (
+            cloudflare_tunnel_module.get_tunnel_config("f70ff985-a4ef-4643-bbbc-4a0ed4fc8415")
+            == expected_result
+        )
 
 
 def test_get_tunnel_config_does_not_exist():
@@ -515,66 +518,63 @@ def test_get_tunnel_config_does_not_exist():
         "config": None,
         "tunnel_id": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415",
         "version": 15,
-        "created_at": "2021-01-25T18:22:34.317854Z"
+        "created_at": "2021-01-25T18:22:34.317854Z",
     }
 
     expected_result = False
 
     with patch(
         "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.get_tunnel_config",
-        MagicMock(return_value=mock_result)
+        MagicMock(return_value=mock_result),
     ):
-        assert cloudflare_tunnel_module.get_tunnel_config("f70ff985-a4ef-4643-bbbc-4a0ed4fc8415") is expected_result
+        assert (
+            cloudflare_tunnel_module.get_tunnel_config("f70ff985-a4ef-4643-bbbc-4a0ed4fc8415")
+            is expected_result
+        )
 
 
 def test_create_tunnel_config():
     mock_result = {
         "config": {
-            "warp-routing": {
-                "enabled": True
-            },
-            "originRequest" : {
-                "connectTimeout": 10
-            },
-            "ingress" : [
-                {"hostname": "test", "service": "https://localhost:8000" },
-                {"service": "http_status:404"}
-            ]
+            "warp-routing": {"enabled": True},
+            "originRequest": {"connectTimeout": 10},
+            "ingress": [
+                {"hostname": "test", "service": "https://localhost:8000"},
+                {"service": "http_status:404"},
+            ],
         },
         "tunnel_id": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415",
         "version": 15,
-        "created_at": "2021-01-25T18:22:34.317854Z"
+        "created_at": "2021-01-25T18:22:34.317854Z",
     }
 
     expected_result = {
         "tunnel_id": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415",
         "config": {
-            "warp-routing": {
-                "enabled": True
-            },
-            "originRequest" : {
-                "connectTimeout": 10
-            },
-            "ingress" : [
-                {"hostname": "test", "service": "https://localhost:8000" },
-                {"service": "http_status:404"}
-            ]
-        }
+            "warp-routing": {"enabled": True},
+            "originRequest": {"connectTimeout": 10},
+            "ingress": [
+                {"hostname": "test", "service": "https://localhost:8000"},
+                {"service": "http_status:404"},
+            ],
+        },
     }
 
     with patch(
         "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.create_tunnel_config",
-        MagicMock(return_value=mock_result)
+        MagicMock(return_value=mock_result),
     ):
 
         add_ingress = {
             "ingress": [
-                {"hostname": "test", "service": "https://localhost:8000" },
-                {"service": "http_status:404"}
+                {"hostname": "test", "service": "https://localhost:8000"},
+                {"service": "http_status:404"},
             ]
         }
 
-        assert cloudflare_tunnel_module.create_tunnel_config("f70ff985-a4ef-4643-bbbc-4a0ed4fc8415", add_ingress)
+        assert cloudflare_tunnel_module.create_tunnel_config(
+            "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415", add_ingress
+        )
 
 
 def test_create_tunnel_config_failed():
@@ -582,18 +582,16 @@ def test_create_tunnel_config_failed():
 
     with patch(
         "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.create_tunnel_config",
-        MagicMock(return_value=mock_result)
+        MagicMock(return_value=mock_result),
     ):
         with pytest.raises(
             salt.exceptions.CommandExecutionError,
             match="There was an issue creating the tunnel config",
         ):
-            add_ingress = {
-                "ingress": [
-                    {"hostname": "test", "service": "https://localhost:8000" }
-                ]
-            }
-            cloudflare_tunnel_module.create_tunnel_config("f70ff985-a4ef-4643-bbbc-4a0ed4fc8415", add_ingress)
+            add_ingress = {"ingress": [{"hostname": "test", "service": "https://localhost:8000"}]}
+            cloudflare_tunnel_module.create_tunnel_config(
+                "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415", add_ingress
+            )
 
 
 def test_install_connector():
@@ -616,8 +614,7 @@ def test_install_connector_failed():
             {"cmd.run": MagicMock(return_value="provided token is invalid")},
         ):
             with pytest.raises(
-                salt.exceptions.CommandExecutionError,
-                match="Error installing connector"
+                salt.exceptions.CommandExecutionError, match="Error installing connector"
             ):
                 cloudflare_tunnel_module.install_connector("12345")
 
@@ -665,7 +662,6 @@ def test_remove_connector_failed():
         },
     ):
         with pytest.raises(
-            salt.exceptions.CommandExecutionError,
-            match="Error uninstalling connector"
+            salt.exceptions.CommandExecutionError, match="Error uninstalling connector"
         ):
             cloudflare_tunnel_module.remove_connector()

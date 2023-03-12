@@ -64,6 +64,8 @@ def present(name, ingress):
             for rule in ingress:
                 if rule not in config["config"]["ingress"]:
                     create_config = True
+        else:
+            create_config = True
     else:
         create_config = True
 
@@ -97,14 +99,9 @@ def present(name, ingress):
 
         tunnel = __salt__["cloudflare_tunnel.create_tunnel"](name)
 
-        if tunnel:
-            ret["changes"].setdefault("tunnel created", name)
-            ret["result"] = True
-            ret["comment"] = f"Cloudflare tunnel {name} was created"
-        else:
-            ret["result"] = False
-            ret["comment"] = f"Failed to create the {name} tunnel"
-            return ret
+        ret["changes"].setdefault("tunnel created", name)
+        ret["result"] = True
+        ret["comment"] = f"Cloudflare tunnel {name} was created"
 
     if create_config:
         if __opts__["test"]:
@@ -115,60 +112,37 @@ def present(name, ingress):
             tunnel["id"], {"ingress": ingress}
         )
 
-        if tunnel_config:
-            ret["changes"].setdefault("tunnel config", "created/updated")
-
-            ret["result"] = True
-        else:
-            ret["result"] = False
-            ret["comment"] = "\n".join([ret["comment"], "Failed to create tunnel config"])
-            return ret
+        ret["changes"].setdefault("tunnel config", "created/updated")
+        ret["result"] = True
 
     if create_dns:
-        for dns in create_dns:
-            if __opts__["test"]:
+        if __opts__["test"]:
+            for dns in create_dns:
                 ret["comment"] = "\n".join([ret["comment"], f"DNS {dns} will be created"])
-                return ret
+            return ret
 
+        for dns in create_dns:
             dns = __salt__["cloudflare_tunnel.create_dns"](dns, tunnel["id"])
 
-            if dns:
-                ret["changes"][dns["name"]] = {
-                    "content": dns["content"],
-                    "type": dns["type"],
-                    "proxied": dns["proxied"],
-                    "comment": dns["comment"],
-                }
-
-                ret["result"] = True
-            else:
-                ret["result"] = False
-                ret["comment"] = "\n".join([ret["comment"], f"Failed to create {dns} DNS entry"])
-
-        return ret
+            ret["changes"][dns["name"]] = {
+                "content": dns["content"],
+                "type": dns["type"],
+                "proxied": dns["proxied"],
+                "comment": dns["comment"],
+            }
+            ret["result"] = True
 
     if config_service:
         if __opts__["test"]:
-            ret["comment"] = "Cloudflare connector will be installed "
+            ret["comment"] = "Cloudflare connector will be installed"
             return ret
 
         if tunnel:
             tunnel_name = tunnel["name"]
             connector = __salt__["cloudflare_tunnel.install_connector"](tunnel["id"])
 
-            if connector:
-                ret["changes"].setdefault("connector installed and started", True)
-                ret["result"] = True
-                ret["comment"] = "\n".join(
-                    [
-                        ret["comment"],
-                        f"Connector was installed configured for {tunnel_name}",
-                    ]
-                )
-            else:
-                ret["result"] = False
-                ret["comment"] = "\n".join([ret["comment"], "Failed to configure connector"])
-                return ret
+            ret["changes"].setdefault("connector installed and started", True)
+            ret["result"] = True
         else:
             ret["result"] = False
             ret["comment"] = "Tunnel not found, could not configure the connector"
@@ -207,13 +181,8 @@ def absent(name):
 
         if tunnel_config:
             connector = __salt__["cloudflare_tunnel.remove_connector"]()
-            if connector:
-                ret["changes"].setdefault("connector", "removed")
-                ret["result"] = True
-            else:
-                ret["comment"] = "Failed to uninstall the cloudflare connector"
-                ret["result"] = False
-                return ret
+            ret["changes"].setdefault("connector", "removed")
+            ret["result"] = True
 
             dns_changes = []
             for rule in tunnel_config["config"]["ingress"]:
@@ -223,26 +192,16 @@ def absent(name):
                     dns = __salt__["cloudflare_tunnel.get_dns"](hostname)
                     if dns:
                         dns_name = dns["name"]
-                        if __salt__["cloudflare_tunnel.remove_dns"](dns["name"]):
-                            dns_changes.append(f"{dns_name} removed")
-                            ret["result"] = True
-                        else:
-                            ret["comment"] = f"Failed to remove DNS entry {dns_name}"
-                            ret["result"] = False
-                            return ret
+                        __salt__["cloudflare_tunnel.remove_dns"](dns["name"])
+                        dns_changes.append(f"{dns_name} removed")
+                        ret["result"] = True
 
             ret["changes"]["dns"] = dns_changes
 
-        if __salt__["cloudflare_tunnel.remove_tunnel"](tunnel["id"]):
-            ret["comment"] = "\n".join(
-                [ret["comment"], f"Cloudflare Tunnel {tunnel_name} has been removed"]
-            )
-            ret["changes"].setdefault("tunnel", f"removed {tunnel_name}")
-            ret["result"] = True
-        else:
-            ret["comment"] = f"Failed to remove Cloudflare tunnel {tunnel_name}"
-            ret["result"] = False
-            return ret
+        __salt__["cloudflare_tunnel.remove_tunnel"](tunnel["id"])
+        ret["comment"] = f"Cloudflare Tunnel {tunnel_name} has been removed"
+        ret["changes"].setdefault("tunnel", f"removed {tunnel_name}")
+        ret["result"] = True
     else:
         ret["comment"] = f"Cloudflare Tunnel {name} does not exist"
         ret["result"] = True
