@@ -108,9 +108,7 @@ def present(name, ingress):
             ret["comment"] = "Tunnel config will be created"
             return ret
 
-        tunnel_config = __salt__["cloudflare_tunnel.create_tunnel_config"](
-            tunnel["id"], {"ingress": ingress}
-        )
+        __salt__["cloudflare_tunnel.create_tunnel_config"](tunnel["id"], {"ingress": ingress})
 
         ret["changes"].setdefault("tunnel config", "created/updated")
         ret["result"] = True
@@ -138,8 +136,7 @@ def present(name, ingress):
             return ret
 
         if tunnel:
-            tunnel_name = tunnel["name"]
-            connector = __salt__["cloudflare_tunnel.install_connector"](tunnel["id"])
+            __salt__["cloudflare_tunnel.install_connector"](tunnel["id"])
 
             ret["changes"].setdefault("connector installed and started", True)
             ret["result"] = True
@@ -180,7 +177,7 @@ def absent(name):
         tunnel_config = __salt__["cloudflare_tunnel.get_tunnel_config"](tunnel["id"])
 
         if tunnel_config:
-            connector = __salt__["cloudflare_tunnel.remove_connector"]()
+            __salt__["cloudflare_tunnel.remove_connector"]()
             ret["changes"].setdefault("connector", "removed")
             ret["result"] = True
 
