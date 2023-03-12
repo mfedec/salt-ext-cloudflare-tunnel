@@ -113,15 +113,15 @@ def test_present():
             "tunnel created": "cf_tunnel_example",
             "tunnel config": "created/updated",
             "test.example.com": {
-                    "comment": "Managed by SaltStack",
-                    "content": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415.cfargotunnel.com",
-                    "proxied": True,
-                    "type": "CNAME"
+                "comment": "Managed by SaltStack",
+                "content": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415.cfargotunnel.com",
+                "proxied": True,
+                "type": "CNAME",
             },
-            "connector installed and started": True
+            "connector installed and started": True,
         },
         "result": True,
-        "comment": "Cloudflare tunnel cf_tunnel_example was created"
+        "comment": "Cloudflare tunnel cf_tunnel_example was created",
     }
 
     with patch.dict(
@@ -134,11 +134,14 @@ def test_present():
             "cloudflare_tunnel.create_tunnel": MagicMock(return_value=mock_tunnel),
             "cloudflare_tunnel.create_tunnel_config": MagicMock(return_value=mock_config),
             "cloudflare_tunnel.create_dns": MagicMock(return_value=mock_dns),
-            "cloudflare_tunnel.install_connector": MagicMock(return_value=True)
+            "cloudflare_tunnel.install_connector": MagicMock(return_value=True),
         },
     ):
         with patch.dict(cloudflare_tunnel_state.__opts__, {"test": False}):
-            assert cloudflare_tunnel_state.present("cf_tunnel_example", ingress_rules) == expected_result
+            assert (
+                cloudflare_tunnel_state.present("cf_tunnel_example", ingress_rules)
+                == expected_result
+            )
 
 
 def test_present_multiple_dns():
@@ -148,27 +151,27 @@ def test_present_multiple_dns():
             "tunnel created": "cf_tunnel_example",
             "tunnel config": "created/updated",
             "test.example.com": {
-                    "comment": "Managed by SaltStack",
-                    "content": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415.cfargotunnel.com",
-                    "proxied": True,
-                    "type": "CNAME"
+                "comment": "Managed by SaltStack",
+                "content": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415.cfargotunnel.com",
+                "proxied": True,
+                "type": "CNAME",
             },
             "test-2.example.com": {
-                    "comment": "Managed by SaltStack",
-                    "content": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415.cfargotunnel.com",
-                    "proxied": True,
-                    "type": "CNAME"
+                "comment": "Managed by SaltStack",
+                "content": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415.cfargotunnel.com",
+                "proxied": True,
+                "type": "CNAME",
             },
             "test-3.example.com": {
-                    "comment": "Managed by SaltStack",
-                    "content": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415.cfargotunnel.com",
-                    "proxied": True,
-                    "type": "CNAME"
+                "comment": "Managed by SaltStack",
+                "content": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415.cfargotunnel.com",
+                "proxied": True,
+                "type": "CNAME",
             },
-            "connector installed and started": True
+            "connector installed and started": True,
         },
         "result": True,
-        "comment": "Cloudflare tunnel cf_tunnel_example was created"
+        "comment": "Cloudflare tunnel cf_tunnel_example was created",
     }
 
     with patch.dict(
@@ -181,11 +184,14 @@ def test_present_multiple_dns():
             "cloudflare_tunnel.create_tunnel": MagicMock(return_value=mock_tunnel),
             "cloudflare_tunnel.create_tunnel_config": MagicMock(return_value=mock_config_multiple),
             "cloudflare_tunnel.create_dns": MagicMock(side_effect=mock_dns_multiple),
-            "cloudflare_tunnel.install_connector": MagicMock(return_value=True)
+            "cloudflare_tunnel.install_connector": MagicMock(return_value=True),
         },
     ):
         with patch.dict(cloudflare_tunnel_state.__opts__, {"test": False}):
-            assert cloudflare_tunnel_state.present("cf_tunnel_example", ingress_rules_multiple) == expected_result
+            assert (
+                cloudflare_tunnel_state.present("cf_tunnel_example", ingress_rules_multiple)
+                == expected_result
+            )
 
 
 def test_present_no_changes():
@@ -193,7 +199,7 @@ def test_present_no_changes():
         "name": "cf_tunnel_example",
         "changes": {},
         "result": True,
-        "comment": "Cloudflare Tunnel cf_tunnel_example is already in the desired state"
+        "comment": "Cloudflare Tunnel cf_tunnel_example is already in the desired state",
     }
 
     with patch.dict(
@@ -202,11 +208,14 @@ def test_present_no_changes():
             "cloudflare_tunnel.get_tunnel": MagicMock(return_value=mock_tunnel),
             "cloudflare_tunnel.get_tunnel_config": MagicMock(return_value=mock_config),
             "cloudflare_tunnel.get_dns": MagicMock(return_value=mock_dns),
-            "cloudflare_tunnel.is_connector_installed": MagicMock(return_value=True)
+            "cloudflare_tunnel.is_connector_installed": MagicMock(return_value=True),
         },
     ):
         with patch.dict(cloudflare_tunnel_state.__opts__, {"test": False}):
-            assert cloudflare_tunnel_state.present("cf_tunnel_example", ingress_rules) == expected_result
+            assert (
+                cloudflare_tunnel_state.present("cf_tunnel_example", ingress_rules)
+                == expected_result
+            )
 
 
 def test_present_create_tunnel_test_mode():
@@ -214,7 +223,7 @@ def test_present_create_tunnel_test_mode():
         "name": "cf_tunnel_example",
         "changes": {},
         "result": None,
-        "comment": "Tunnel cf_tunnel_example will be created"
+        "comment": "Tunnel cf_tunnel_example will be created",
     }
 
     with patch.dict(
@@ -223,11 +232,14 @@ def test_present_create_tunnel_test_mode():
             "cloudflare_tunnel.get_tunnel": MagicMock(return_value=False),
             "cloudflare_tunnel.get_tunnel_config": MagicMock(return_value=False),
             "cloudflare_tunnel.get_dns": MagicMock(return_value=False),
-            "cloudflare_tunnel.is_connector_installed": MagicMock(return_value=False)
+            "cloudflare_tunnel.is_connector_installed": MagicMock(return_value=False),
         },
     ):
         with patch.dict(cloudflare_tunnel_state.__opts__, {"test": True}):
-            assert cloudflare_tunnel_state.present("cf_tunnel_example", ingress_rules) == expected_result
+            assert (
+                cloudflare_tunnel_state.present("cf_tunnel_example", ingress_rules)
+                == expected_result
+            )
 
 
 def test_present_create_config_test_mode():
@@ -235,7 +247,7 @@ def test_present_create_config_test_mode():
         "name": "cf_tunnel_example",
         "changes": {},
         "result": None,
-        "comment": "Tunnel config will be created"
+        "comment": "Tunnel config will be created",
     }
 
     with patch.dict(
@@ -244,11 +256,14 @@ def test_present_create_config_test_mode():
             "cloudflare_tunnel.get_tunnel": MagicMock(return_value=mock_tunnel),
             "cloudflare_tunnel.get_tunnel_config": MagicMock(return_value=False),
             "cloudflare_tunnel.get_dns": MagicMock(return_value=False),
-            "cloudflare_tunnel.is_connector_installed": MagicMock(return_value=False)
+            "cloudflare_tunnel.is_connector_installed": MagicMock(return_value=False),
         },
     ):
         with patch.dict(cloudflare_tunnel_state.__opts__, {"test": True}):
-            assert cloudflare_tunnel_state.present("cf_tunnel_example", ingress_rules) == expected_result
+            assert (
+                cloudflare_tunnel_state.present("cf_tunnel_example", ingress_rules)
+                == expected_result
+            )
 
 
 def test_present_create_dns_test_mode():
@@ -256,7 +271,7 @@ def test_present_create_dns_test_mode():
         "name": "cf_tunnel_example",
         "changes": {},
         "result": None,
-        "comment": "\nDNS test.example.com will be created"
+        "comment": "\nDNS test.example.com will be created",
     }
 
     with patch.dict(
@@ -265,11 +280,14 @@ def test_present_create_dns_test_mode():
             "cloudflare_tunnel.get_tunnel": MagicMock(return_value=mock_tunnel),
             "cloudflare_tunnel.get_tunnel_config": MagicMock(return_value=mock_config),
             "cloudflare_tunnel.get_dns": MagicMock(return_value=False),
-            "cloudflare_tunnel.is_connector_installed": MagicMock(return_value=False)
+            "cloudflare_tunnel.is_connector_installed": MagicMock(return_value=False),
         },
     ):
         with patch.dict(cloudflare_tunnel_state.__opts__, {"test": True}):
-            assert cloudflare_tunnel_state.present("cf_tunnel_example", ingress_rules) == expected_result
+            assert (
+                cloudflare_tunnel_state.present("cf_tunnel_example", ingress_rules)
+                == expected_result
+            )
 
 
 def test_present_create_dns_multiple_test_mode():
@@ -277,7 +295,7 @@ def test_present_create_dns_multiple_test_mode():
         "name": "cf_tunnel_example",
         "changes": {},
         "result": None,
-        "comment": "\nDNS test.example.com will be created\nDNS test-2.example.com will be created\nDNS test-3.example.com will be created"
+        "comment": "\nDNS test.example.com will be created\nDNS test-2.example.com will be created\nDNS test-3.example.com will be created",
     }
 
     with patch.dict(
@@ -286,11 +304,14 @@ def test_present_create_dns_multiple_test_mode():
             "cloudflare_tunnel.get_tunnel": MagicMock(return_value=mock_tunnel),
             "cloudflare_tunnel.get_tunnel_config": MagicMock(return_value=mock_config_multiple),
             "cloudflare_tunnel.get_dns": MagicMock(return_value=False),
-            "cloudflare_tunnel.is_connector_installed": MagicMock(return_value=False)
+            "cloudflare_tunnel.is_connector_installed": MagicMock(return_value=False),
         },
     ):
         with patch.dict(cloudflare_tunnel_state.__opts__, {"test": True}):
-            assert cloudflare_tunnel_state.present("cf_tunnel_example", ingress_rules_multiple) == expected_result
+            assert (
+                cloudflare_tunnel_state.present("cf_tunnel_example", ingress_rules_multiple)
+                == expected_result
+            )
 
 
 def test_present_install_connector_test_mode():
@@ -298,7 +319,7 @@ def test_present_install_connector_test_mode():
         "name": "cf_tunnel_example",
         "changes": {},
         "result": None,
-        "comment": "Cloudflare connector will be installed"
+        "comment": "Cloudflare connector will be installed",
     }
 
     with patch.dict(
@@ -307,11 +328,14 @@ def test_present_install_connector_test_mode():
             "cloudflare_tunnel.get_tunnel": MagicMock(return_value=mock_tunnel),
             "cloudflare_tunnel.get_tunnel_config": MagicMock(return_value=mock_config),
             "cloudflare_tunnel.get_dns": MagicMock(return_value=mock_dns),
-            "cloudflare_tunnel.is_connector_installed": MagicMock(return_value=False)
+            "cloudflare_tunnel.is_connector_installed": MagicMock(return_value=False),
         },
     ):
         with patch.dict(cloudflare_tunnel_state.__opts__, {"test": True}):
-            assert cloudflare_tunnel_state.present("cf_tunnel_example", ingress_rules) == expected_result
+            assert (
+                cloudflare_tunnel_state.present("cf_tunnel_example", ingress_rules)
+                == expected_result
+            )
 
 
 def test_absent():
@@ -408,7 +432,7 @@ def test_absent_tunnel_does_not_exist():
         "name": "cf_tunnel_example",
         "changes": {},
         "result": True,
-        "comment": "Cloudflare Tunnel cf_tunnel_example does not exist"
+        "comment": "Cloudflare Tunnel cf_tunnel_example does not exist",
     }
 
     with patch.dict(
@@ -416,11 +440,3 @@ def test_absent_tunnel_does_not_exist():
         {"cloudflare_tunnel.get_tunnel": MagicMock(return_value=False)},
     ):
         assert cloudflare_tunnel_state.absent("cf_tunnel_example") == expected_result
-
-
-
-
-
-
-
-
