@@ -29,7 +29,7 @@ mock_dns = {
     "id": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415",
     "name": "test.example.com",
     "type": "CNAME",
-    "content": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415.cf_argotunnel.com",
+    "content": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415.cfargotunnel.com",
     "proxied": True,
     "zone_id": "023e105f4ecef8ad9ca31a8372d0c353",
     "comment": "Managed by SaltStack",
@@ -54,7 +54,7 @@ mock_dns_multiple = [
         "id": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415",
         "name": "test.example.com",
         "type": "CNAME",
-        "content": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415.cf_argotunnel.com",
+        "content": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415.cfargotunnel.com",
         "proxied": True,
         "zone_id": "023e105f4ecef8ad9ca31a8372d0c353",
         "comment": "Managed by SaltStack",
@@ -63,7 +63,7 @@ mock_dns_multiple = [
         "id": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415",
         "name": "test-2.example.com",
         "type": "CNAME",
-        "content": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415.cf_argotunnel.com",
+        "content": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415.cfargotunnel.com",
         "proxied": True,
         "zone_id": "023e105f4ecef8ad9ca31a8372d0c353",
         "comment": "Managed by SaltStack",
@@ -72,7 +72,7 @@ mock_dns_multiple = [
         "id": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415",
         "name": "test-3.example.com",
         "type": "CNAME",
-        "content": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415.cf_argotunnel.com",
+        "content": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415.cfargotunnel.com",
         "proxied": True,
         "zone_id": "023e105f4ecef8ad9ca31a8372d0c353",
         "comment": "Managed by SaltStack",
@@ -106,15 +106,86 @@ def configure_loader_modules():
     }
 
 
-# def test_present():
-#     expected_result = {
-#         "name": "cf_tunnel_example",
-#         "changes": {
+def test_present():
+    expected_result = {
+        "name": "cf_tunnel_example",
+        "changes": {
+            "tunnel created": "cf_tunnel_example",
+            "tunnel config": "created/updated",
+            "test.example.com": {
+                    "comment": "Managed by SaltStack",
+                    "content": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415.cfargotunnel.com",
+                    "proxied": True,
+                    "type": "CNAME"
+            },
+            "connector installed and started": True
+        },
+        "result": True,
+        "comment": "Cloudflare tunnel cf_tunnel_example was created"
+    }
 
-#         },
-#         "result": True,
-#         "comment": ""
-#     }
+    with patch.dict(
+        cloudflare_tunnel_state.__salt__,
+        {
+            "cloudflare_tunnel.get_tunnel": MagicMock(return_value=False),
+            "cloudflare_tunnel.get_tunnel_config": MagicMock(return_value=False),
+            "cloudflare_tunnel.get_dns": MagicMock(return_value=False),
+            "cloudflare_tunnel.is_connector_installed": MagicMock(return_value=False),
+            "cloudflare_tunnel.create_tunnel": MagicMock(return_value=mock_tunnel),
+            "cloudflare_tunnel.create_tunnel_config": MagicMock(return_value=mock_config),
+            "cloudflare_tunnel.create_dns": MagicMock(return_value=mock_dns),
+            "cloudflare_tunnel.install_connector": MagicMock(return_value=True)
+        },
+    ):
+        with patch.dict(cloudflare_tunnel_state.__opts__, {"test": False}):
+            assert cloudflare_tunnel_state.present("cf_tunnel_example", ingress_rules) == expected_result
+
+
+def test_present_multiple_dns():
+    expected_result = {
+        "name": "cf_tunnel_example",
+        "changes": {
+            "tunnel created": "cf_tunnel_example",
+            "tunnel config": "created/updated",
+            "test.example.com": {
+                    "comment": "Managed by SaltStack",
+                    "content": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415.cfargotunnel.com",
+                    "proxied": True,
+                    "type": "CNAME"
+            },
+            "test-2.example.com": {
+                    "comment": "Managed by SaltStack",
+                    "content": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415.cfargotunnel.com",
+                    "proxied": True,
+                    "type": "CNAME"
+            },
+            "test-3.example.com": {
+                    "comment": "Managed by SaltStack",
+                    "content": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415.cfargotunnel.com",
+                    "proxied": True,
+                    "type": "CNAME"
+            },
+            "connector installed and started": True
+        },
+        "result": True,
+        "comment": "Cloudflare tunnel cf_tunnel_example was created"
+    }
+
+    with patch.dict(
+        cloudflare_tunnel_state.__salt__,
+        {
+            "cloudflare_tunnel.get_tunnel": MagicMock(return_value=False),
+            "cloudflare_tunnel.get_tunnel_config": MagicMock(return_value=False),
+            "cloudflare_tunnel.get_dns": MagicMock(return_value=False),
+            "cloudflare_tunnel.is_connector_installed": MagicMock(return_value=False),
+            "cloudflare_tunnel.create_tunnel": MagicMock(return_value=mock_tunnel),
+            "cloudflare_tunnel.create_tunnel_config": MagicMock(return_value=mock_config_multiple),
+            "cloudflare_tunnel.create_dns": MagicMock(side_effect=mock_dns_multiple),
+            "cloudflare_tunnel.install_connector": MagicMock(return_value=True)
+        },
+    ):
+        with patch.dict(cloudflare_tunnel_state.__opts__, {"test": False}):
+            assert cloudflare_tunnel_state.present("cf_tunnel_example", ingress_rules_multiple) == expected_result
 
 
 def test_present_no_changes():

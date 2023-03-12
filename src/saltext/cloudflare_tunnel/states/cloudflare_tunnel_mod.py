@@ -143,12 +143,6 @@ def present(name, ingress):
 
             ret["changes"].setdefault("connector installed and started", True)
             ret["result"] = True
-            ret["comment"] = "\n".join(
-                [
-                    ret["comment"],
-                    f"Connector was installed configured for {tunnel_name}",
-                ]
-            )
         else:
             ret["result"] = False
             ret["comment"] = "Tunnel not found, could not configure the connector"
