@@ -572,8 +572,11 @@ def test_create_tunnel_config():
             ]
         }
 
-        assert cloudflare_tunnel_module.create_tunnel_config(
-            "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415", add_ingress
+        assert (
+            cloudflare_tunnel_module.create_tunnel_config(
+                "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415", add_ingress
+            )
+            == expected_result
         )
 
 

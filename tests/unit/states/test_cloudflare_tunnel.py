@@ -295,7 +295,8 @@ def test_present_create_dns_multiple_test_mode():
         "name": "cf_tunnel_example",
         "changes": {},
         "result": None,
-        "comment": "\nDNS test.example.com will be created\nDNS test-2.example.com will be created\nDNS test-3.example.com will be created",
+        "comment": "\nDNS test.example.com will be created\nDNS test-2.example.com will be created\
+\nDNS test-3.example.com will be created",
     }
 
     with patch.dict(
