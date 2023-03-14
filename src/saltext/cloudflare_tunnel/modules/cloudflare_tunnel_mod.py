@@ -1,8 +1,10 @@
 # pylint: disable=unused-import
 """
-Module for Setting up Cloudflare Zero Trust Tunnels
+Module for Setting up CloudFlare Zero Trust Tunnels
 
-:depends: Cloudflare python module
+:depends: CloudFlare python module
+
+This module requires the python wrapper for the CloudFlare API.
 
 :configuration: This module can be used by specifying the name of a
     configuration profile in the minion config, minion pillar, or master
@@ -15,6 +17,15 @@ Module for Setting up Cloudflare Zero Trust Tunnels
         cloudflare:
             api_token:
             account:
+
+
+api_token:
+    API Token with permissions to create CloudFlare Tunnels
+
+account:
+    CloudFlare Account ID, this can be found on the bottom right of the Overview page for your
+    domain
+
 
 """
 import logging
@@ -36,9 +47,7 @@ __virtualname__ = "cloudflare_tunnel"
 
 
 def __virtual__():
-    """
-    Check to make sure cloudflare python installed and cloudflared cli
-    """
+    ## Check to make sure the python wrapper for CloudFlare and the CloudFlare CLI are installed
     if not salt.utils.path.which("cloudflared"):
         return (
             False,
@@ -137,11 +146,17 @@ def get_tunnel(tunnel_name):
     """
     Get tunnel details for the supplied name
 
+    tunnel_name
+        User friendly name of the tunnel
+
     CLI Example:
 
     .. code-block:: bash
 
         salt '*' cloudflare_tunnel.get_tunnel sample-tunnel
+
+    Returns a dictionary containing the tunnel details if successful or ``False`` if tunnel doesn't
+    exist
     """
     account = __salt__["config.get"]("cloudflare").get("account")
     api_token = __salt__["config.get"]("cloudflare").get("api_token")
@@ -158,11 +173,17 @@ def create_tunnel(tunnel_name):
     """
     Create a locally configured cloudflare tunnel
 
+    tunnel_name
+        User friendly name for the tunnel
+
     CLI Example:
 
     .. code-block:: bash
 
         salt '*' cloudflare_tunnel.create_tunnel example_tunnel_name
+
+    Returns a dictionary containing the tunnel details if successful or ``False`` if it already
+    exists
     """
     account = __salt__["config.get"]("cloudflare").get("account")
     api_token = __salt__["config.get"]("cloudflare").get("api_token")
@@ -181,11 +202,16 @@ def remove_tunnel(tunnel_id):
     """
     Delete a cloudflare tunnel
 
+    tunnel_id
+        tunnel uuid to remove
+
     CLI Example:
 
     .. code-block:: bash
 
         salt '*' cloudflare_tunnel.remove_tunnel <tunnel uuid>
+
+    Returns ``True`` if tunnel removed
     """
     api_token = __salt__["config.get"]("cloudflare").get("api_token")
     account = __salt__["config.get"]("cloudflare").get("account")
@@ -201,11 +227,16 @@ def get_dns(dns_name):
     """
     Get DNS details for the supplied dns name
 
+    dns_name
+        DNS record name
+
     CLI Example:
 
     .. code-block:: bash
 
         salt '*' cloudflare_tunnel.get_dns sample.example.com
+
+    Returns a dictionary containing the dns details or ``False`` if it does not exist
     """
     api_token = __salt__["config.get"]("cloudflare").get("api_token")
     zone = _get_zone_id(dns_name)
@@ -228,11 +259,19 @@ def create_dns(hostname, tunnel_id):
     """
     Create cname record for the tunnel
 
+    hostname
+        DNS record name
+
+    tunnel_id
+        tunnel uuid
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt '*' cloudflare_tunnel.create_dns test tunnel_id
+        salt '*' cloudflare_tunnel.create_dns test.example.com tunnel_id
+
+    Returns a dictionary containing the dns details
     """
     api_token = __salt__["config.get"]("cloudflare").get("api_token")
     zone = _get_zone_id(hostname)
@@ -270,11 +309,16 @@ def remove_dns(hostname):
     """
     Delete a cloudflare dns entry
 
+    hostname
+        DNS record to remove
+
     CLI Example:
 
     .. code-block:: bash
 
         salt '*' cloudflare_tunnel.remove_dns sub.domain.com
+
+    Returns ``True`` if successful
     """
     api_token = __salt__["config.get"]("cloudflare").get("api_token")
     dns = get_dns(hostname)
@@ -293,11 +337,17 @@ def get_tunnel_config(tunnel_id):
     """
     Get a cloudflare tunnel configuration
 
+    tunnel_id
+        tunnel uuid to get the config of
+
     CLI Example:
 
     .. code-block:: bash
 
         salt '*' cloudflare_tunnel.get_tunnel_config <tunnel uuid>
+
+    Returns a dictionary containing the tunnel configuration details or ``False`` if it does not
+    exist
     """
     api_token = __salt__["config.get"]("cloudflare").get("api_token")
     account = __salt__["config.get"]("cloudflare").get("account")
@@ -320,12 +370,21 @@ def create_tunnel_config(tunnel_id, config):
 
     Automatically adds the catch-all rule http_status:404
 
+    tunnel_id
+        tunnel uuid to add the config to
+
+    config
+        ingress rules for the tunnel
+
+
     CLI Example:
 
     .. code-block:: bash
 
         salt '*' cloudflare_tunnel.create_tunnel_config <tunnel uuid> \
-            '{ingress : [{hostname": "test", "service": "https://localhost:8000" }]}'
+'{ingress : [{hostname": "test", "service": "https://localhost:8000" }]}'
+
+    Returns a dictionary containing the tunnel configuration details
     """
     api_token = __salt__["config.get"]("cloudflare").get("api_token")
     account = __salt__["config.get"]("cloudflare").get("account")
@@ -352,6 +411,8 @@ def is_connector_installed():
     .. code-block:: bash
 
         salt '*' cloudflare_tunnel.is_connector_installed
+
+    Returns ``True`` if it installed or ``False`` if it is not
     """
     return __salt__["service.available"]("cloudflared")
 
@@ -360,11 +421,16 @@ def install_connector(tunnel_id):
     """
     Install the connector service
 
+    tunnel_id
+        tunnel uuid to connect cloudflared to
+
     CLI Example:
 
     .. code-block:: bash
 
         salt '*' cloudflare_tunnel.install_connector <tunnel uuid>
+
+    Returns ``True`` if successful
     """
     token = _get_tunnel_token(tunnel_id)
 
@@ -385,6 +451,8 @@ def remove_connector():
     .. code-block:: bash
 
         salt '*' cloudflare_tunnel.remove_connector
+
+    Returns ``True`` if successful
     """
     # Check to see if connector is installed as a service before removing.
     if __salt__["service.available"]("cloudflared"):

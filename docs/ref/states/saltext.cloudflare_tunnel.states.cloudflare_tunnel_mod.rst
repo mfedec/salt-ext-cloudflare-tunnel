@@ -2,29 +2,4 @@
 =========================================================
 
 .. automodule:: saltext.cloudflare_tunnel.states.cloudflare_tunnel_mod
-
-   
-   
-   
-
-   
-   
-   .. rubric:: Functions
-
-   .. autosummary::
-   
-      absent
-      present
-   
-   
-
-   
-   
-   
-
-   
-   
-   
-
-
-
+   :members:

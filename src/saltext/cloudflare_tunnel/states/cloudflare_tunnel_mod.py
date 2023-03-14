@@ -20,19 +20,7 @@ def __virtual__():
 
 def present(name, ingress):
     """
-    .. code-block: yaml
-        ensure cloudflare tunnel is present
-
-        cloudflare_tunnel.present:
-            - name: test_cf_tunnel
-            - ingress:
-                - hostname: name.domain.com
-                  service: https://127.0.0.1:8000
-                  path: test-past
-                  originRequest:
-                    httpHostheader: something
-                - hostname: another.domain.com
-                  service: http://127.0.0.1:8080
+    Ensure the tunnel is present
 
     The following parameters are required:
 
@@ -44,6 +32,23 @@ def present(name, ingress):
 
         It will also add a default catch-all rule
 
+        See `docs <https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/
+        install-and-setup/tunnel-guide/local/local-management/configuration-file>`_ for config details
+
+    CLI Example:
+
+    .. code-block:: yaml
+
+        cloudflare_tunnel.present:
+            - name: test_cf_tunnel
+            - ingress:
+                - hostname: name.domain.com
+                  service: https://127.0.0.1:8000
+                  path: test-past
+                  originRequest:
+                    httpHostheader: something
+                - hostname: another.domain.com
+                  service: http://127.0.0.1:8080
     """
     ret = {"name": name, "changes": {}, "result": None, "comment": ""}
 
@@ -150,17 +155,17 @@ def present(name, ingress):
 
 def absent(name):
     """
-    .. code-block: yaml
-        ensure cloudflare tunnel is absent
-
-        cloudflare_tunnel.absent:
-            - name: test_cf_tunnel
-
-    The following parameters are required:
+    Ensure tunnel is absent
 
     name
         This is the name of the Cloudflare Tunnel to delete
 
+    CLI Example:
+
+    .. code-block:: yaml
+
+        cloudflare_tunnel.absent:
+            - name: test_cf_tunnel
     """
     ret = {"name": name, "changes": {}, "result": None, "comment": ""}
 
