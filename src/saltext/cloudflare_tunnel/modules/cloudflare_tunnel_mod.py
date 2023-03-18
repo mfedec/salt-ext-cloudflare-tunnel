@@ -376,7 +376,6 @@ def create_tunnel_config(tunnel_id, config):
     config
         ingress rules for the tunnel
 
-
     CLI Example:
 
     .. code-block:: bash
