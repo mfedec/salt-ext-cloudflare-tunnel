@@ -2,9 +2,15 @@
 """
 Module for Setting up CloudFlare Zero Trust Tunnels
 
-:depends: CloudFlare python module
+:depends:
+    CloudFlare python module
+        This module requires the python wrapper for the CloudFlare API.
+        https://github.com/cloudflare/python-cloudflare
 
-This module requires the python wrapper for the CloudFlare API.
+    Cloudflared Tunnel Client
+        This module requires that the cloudflared utility to be installed.
+        https://github.com/cloudflare/cloudflared
+
 
 :configuration: This module can be used by specifying the name of a
     configuration profile in the minion config, minion pillar, or master
@@ -47,7 +53,7 @@ __virtualname__ = "cloudflare_tunnel"
 
 
 def __virtual__():
-    ## Check to make sure the python wrapper for CloudFlare and the CloudFlare CLI are installed
+    # Check to make sure the python wrapper for CloudFlare and the CloudFlare CLI are installed
     if not salt.utils.path.which("cloudflared"):
         return (
             False,
@@ -122,6 +128,9 @@ def _get_zone_id(domain_name):
 
     Zone ID is used in the majority of cloudflare api calls. It is the unique ID
     for each domain that is hosted
+
+    domain_name
+        Domain name of the zone_id you want to get
     """
     api_token = __salt__["config.get"]("cloudflare").get("api_token")
 
