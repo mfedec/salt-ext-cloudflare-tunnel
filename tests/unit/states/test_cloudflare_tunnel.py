@@ -117,6 +117,7 @@ def test_present():
                 "content": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415.cfargotunnel.com",
                 "proxied": True,
                 "type": "CNAME",
+                "result": "Added"
             },
             "connector installed and started": True,
         },
@@ -155,18 +156,21 @@ def test_present_multiple_dns():
                 "content": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415.cfargotunnel.com",
                 "proxied": True,
                 "type": "CNAME",
+                "result": "Added"
             },
             "test-2.example.com": {
                 "comment": "Managed by SaltStack",
                 "content": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415.cfargotunnel.com",
                 "proxied": True,
                 "type": "CNAME",
+                "result": "Added"
             },
             "test-3.example.com": {
                 "comment": "Managed by SaltStack",
                 "content": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415.cfargotunnel.com",
                 "proxied": True,
                 "type": "CNAME",
+                "result": "Added"
             },
             "connector installed and started": True,
         },
