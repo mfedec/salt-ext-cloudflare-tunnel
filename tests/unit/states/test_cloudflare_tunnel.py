@@ -117,7 +117,7 @@ def test_present():
                 "content": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415.cfargotunnel.com",
                 "proxied": True,
                 "type": "CNAME",
-                "result": "Added"
+                "result": "Added",
             },
             "connector installed and started": True,
         },
@@ -156,21 +156,21 @@ def test_present_multiple_dns():
                 "content": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415.cfargotunnel.com",
                 "proxied": True,
                 "type": "CNAME",
-                "result": "Added"
+                "result": "Added",
             },
             "test-2.example.com": {
                 "comment": "Managed by SaltStack",
                 "content": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415.cfargotunnel.com",
                 "proxied": True,
                 "type": "CNAME",
-                "result": "Added"
+                "result": "Added",
             },
             "test-3.example.com": {
                 "comment": "Managed by SaltStack",
                 "content": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415.cfargotunnel.com",
                 "proxied": True,
                 "type": "CNAME",
-                "result": "Added"
+                "result": "Added",
             },
             "connector installed and started": True,
         },
@@ -196,6 +196,33 @@ def test_present_multiple_dns():
                 cloudflare_tunnel_state.present("cf_tunnel_example", ingress_rules_multiple)
                 == expected_result
             )
+
+
+def test_present_update_ingress():
+    expected_result = {
+        "name": "cf_tunnel_example",
+        "changes": {
+            "tunnel config": "created/updated",
+            "test-3.example.com": {
+                "comment": "Managed by SaltStack",
+                "content": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415.cfargotunnel.com",
+                "proxied": True,
+                "type": "CNAME",
+                "result": "Removed",
+            },
+            "test-4.example.com": {
+                "comment": "Managed by SaltStack",
+                "content": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415.cfargotunnel.com",
+                "proxied": True,
+                "type": "CNAME",
+                "result": "Added",
+            },
+        },
+        "result": True,
+        "comment": "",
+    }
+
+    assert 1 == 0
 
 
 def test_present_no_changes():

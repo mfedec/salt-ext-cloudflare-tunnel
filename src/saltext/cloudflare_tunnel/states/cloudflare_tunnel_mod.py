@@ -132,7 +132,7 @@ def present(name, ingress):
                 "type": dns["type"],
                 "proxied": dns["proxied"],
                 "comment": dns["comment"],
-                "result": "Added"
+                "result": "Added",
             }
             ret["result"] = True
 
