@@ -198,18 +198,15 @@ def test_present_multiple_dns():
             )
 
 
-def test_present_update_ingress():
+# def test_present_update_ingress_dns_test_mode():
+# How to properly test this
+
+
+def test_present_update_ingress_dns():
     expected_result = {
         "name": "cf_tunnel_example",
         "changes": {
             "tunnel config": "created/updated",
-            "test-3.example.com": {
-                "comment": "Managed by SaltStack",
-                "content": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415.cfargotunnel.com",
-                "proxied": True,
-                "type": "CNAME",
-                "result": "Removed",
-            },
             "test-4.example.com": {
                 "comment": "Managed by SaltStack",
                 "content": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415.cfargotunnel.com",
@@ -217,12 +214,62 @@ def test_present_update_ingress():
                 "type": "CNAME",
                 "result": "Added",
             },
+            "test.example.com": {
+                "result": "Removed",
+            },
         },
         "result": True,
         "comment": "",
     }
 
-    assert 1 == 0
+    updated_ingress_rules = [
+        {"hostname": "test-4.example.com", "service": "https://localhost:8000"},
+        {"service": "http_status:404"},
+    ]
+
+    updated_mock_config = {
+        "tunnel_id": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415",
+        "config": {
+            "warp-routing": {"enabled": True},
+            "originRequest": {"connectTimeout": 10},
+            "ingress": [
+                {"hostname": "test-4.example.com", "service": "https://localhost:8000"},
+                {"service": "http_status:404"},
+            ],
+        },
+    }
+
+    updated_mock_dns = {
+        "id": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415",
+        "name": "test-4.example.com",
+        "type": "CNAME",
+        "content": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415.cfargotunnel.com",
+        "proxied": True,
+        "zone_id": "023e105f4ecef8ad9ca31a8372d0c353",
+        "comment": "Managed by SaltStack",
+    }
+
+    with patch.dict(
+        cloudflare_tunnel_state.__salt__,
+        {
+            "cloudflare_tunnel.get_tunnel": MagicMock(return_value=mock_tunnel),
+            "cloudflare_tunnel.get_tunnel_config": MagicMock(return_value=mock_config),
+            "cloudflare_tunnel.get_dns": MagicMock(return_value=mock_dns),
+            "cloudflare_tunnel.is_connector_installed": MagicMock(return_value=True),
+            "cloudflare_tunnel.create_tunnel": MagicMock(return_value=False),
+            "cloudflare_tunnel.create_tunnel_config": MagicMock(
+                return_value=updated_mock_config
+            ),
+            "cloudflare_tunnel.create_dns": MagicMock(return_value=updated_mock_dns),
+            "cloudflare_tunnel.install_connector": MagicMock(return_value=False),
+            "cloudflare_tunnel.remove_dns": MagicMock(return_value=True),
+        },
+    ):
+        with patch.dict(cloudflare_tunnel_state.__opts__, {"test": False}):
+            assert (
+                cloudflare_tunnel_state.present("cf_tunnel_example", updated_ingress_rules)
+                == expected_result
+            )
 
 
 def test_present_no_changes():

@@ -56,6 +56,7 @@ def present(name, ingress):
 
     create_tunnel = True
     create_dns = []
+    remove_dns = []
     create_config = False
     config_service = True
 
@@ -69,6 +70,14 @@ def present(name, ingress):
             for rule in ingress:
                 if rule not in config["config"]["ingress"]:
                     create_config = True
+
+            # Check if there any existing dns entries that need to be removed
+            for rule in config["config"]["ingress"]:
+                if "hostname" in rule:
+                    if rule not in ingress:
+                        dns = __salt__["cloudflare_tunnel.get_dns"](rule["hostname"])
+                        if dns:
+                            remove_dns.append(dns["name"])
         else:
             create_config = True
     else:
@@ -81,8 +90,8 @@ def present(name, ingress):
             if dns and tunnel:
                 if (
                     dns["name"] != rule["hostname"]
-                    and dns["content"] != f"{tunnel['id']}.cfargotunnel.com"
-                    and dns["proxied"]
+                    # and dns["content"] != f"{tunnel['id']}.cfargotunnel.com"
+                    # and dns["proxied"]
                 ):
                     create_dns.append(dns["name"])
             else:
@@ -91,7 +100,7 @@ def present(name, ingress):
     if __salt__["cloudflare_tunnel.is_connector_installed"]():
         config_service = False
 
-    if not (create_tunnel or create_dns or create_config or config_service):
+    if not (create_tunnel or create_dns or create_config or config_service): # or remove_dns):
         ret["result"] = True
         ret["comment"] = f"Cloudflare Tunnel {name} is already in the desired state"
 
@@ -133,6 +142,20 @@ def present(name, ingress):
                 "proxied": dns["proxied"],
                 "comment": dns["comment"],
                 "result": "Added",
+            }
+            ret["result"] = True
+
+    if remove_dns:
+        if __opts__["test"]:
+            for dns in remove_dns:
+                ret["comment"] = "\n".join([ret["comment"], f"DNS {dns} will be removed"])
+            return ret
+
+        for hostname in remove_dns:
+            __salt__["cloudflare_tunnel.remove_dns"](hostname)
+
+            ret["changes"][hostname] = {
+                "result": "Removed",
             }
             ret["result"] = True
 
