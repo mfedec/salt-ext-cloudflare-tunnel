@@ -57,7 +57,7 @@ def present(name, ingress):
     create_tunnel = True
     create_dns = []
     remove_dns = []
-    create_config = False
+    update_config = False
     config_service = True
 
     if tunnel:
@@ -69,38 +69,34 @@ def present(name, ingress):
         if config:
             for rule in ingress:
                 if rule not in config["config"]["ingress"]:
-                    create_config = True
+                    update_config = True
 
-            # Check if there any existing dns entries that need to be removed
+            # Check if there any existing rules that need to be removed
             for rule in config["config"]["ingress"]:
+                if rule not in ingress:
+                    update_config = True
+
                 if "hostname" in rule:
-                    if rule not in ingress:
+                    if not any(rule["hostname"] in d.values() for d in ingress):
                         dns = __salt__["cloudflare_tunnel.get_dns"](rule["hostname"])
                         if dns:
                             remove_dns.append(dns["name"])
         else:
-            create_config = True
+            update_config = True
     else:
-        create_config = True
+        update_config = True
 
     for rule in ingress:
         if "hostname" in rule:
             dns = __salt__["cloudflare_tunnel.get_dns"](rule["hostname"])
 
-            if dns and tunnel:
-                if (
-                    dns["name"] != rule["hostname"]
-                    # and dns["content"] != f"{tunnel['id']}.cfargotunnel.com"
-                    # and dns["proxied"]
-                ):
-                    create_dns.append(dns["name"])
-            else:
+            if not dns:
                 create_dns.append(rule["hostname"])
 
     if __salt__["cloudflare_tunnel.is_connector_installed"]():
         config_service = False
 
-    if not (create_tunnel or create_dns or create_config or config_service): # or remove_dns):
+    if not (create_tunnel or create_dns or update_config or config_service or remove_dns):
         ret["result"] = True
         ret["comment"] = f"Cloudflare Tunnel {name} is already in the desired state"
 
@@ -117,9 +113,9 @@ def present(name, ingress):
         ret["result"] = True
         ret["comment"] = f"Cloudflare tunnel {name} was created"
 
-    if create_config:
+    if update_config:
         if __opts__["test"]:
-            ret["comment"] = "Tunnel config will be created"
+            ret["comment"] = "Tunnel config will be created/updated"
             return ret
 
         __salt__["cloudflare_tunnel.create_tunnel_config"](tunnel["id"], {"ingress": ingress})
