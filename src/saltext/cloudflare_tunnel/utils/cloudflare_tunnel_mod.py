@@ -68,7 +68,7 @@ def _get_client(api_token):
 
 def get_zone_id(api_token, domain_name):
     """
-    Gets the zone if for the specified domain name
+    Gets the zone for the specified domain name
 
     api_token
         Cloudflare API token that has permissions to edit cloudflare tunnels

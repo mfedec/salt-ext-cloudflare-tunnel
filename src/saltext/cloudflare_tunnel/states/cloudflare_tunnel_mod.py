@@ -1,5 +1,37 @@
 """
-Salt state module
+Cloudflare Tunnel State Module
+
+This module is used to manage Cloudflare Zero Trust Tunnels
+
+:depends:
+    CloudFlare python module
+        This module requires the python wrapper for the CloudFlare API.
+        https://github.com/cloudflare/python-cloudflare
+
+    Cloudflared Tunnel Client
+        This module requires that the cloudflared utility to be installed.
+        https://github.com/cloudflare/cloudflared
+
+
+:configuration: This module can be used by specifying the name of a
+    configuration profile in the minion config, minion pillar, or master
+    config. The module will use the 'cloudflare' key by default
+
+    For example:
+
+    .. code-block:: yaml
+
+        cloudflare:
+            api_token:
+            account:
+
+
+api_token:
+    API Token with permissions to create CloudFlare Tunnels
+
+account:
+    CloudFlare Account ID, this can be found on the bottom right of the Overview page for your
+    domain
 """
 import logging
 
@@ -9,10 +41,6 @@ __virtualname__ = "cloudflare_tunnel"
 
 
 def __virtual__():
-    # To force a module not to load return something like:
-    #   return (False, "The cloudflare_tunnel state module is not implemented yet")
-
-    # Replace this with your own logic
     if "cloudflare_tunnel.get_tunnel" not in __salt__:
         return False, "The 'cloudflare_tunnel' execution module is not available"
     return __virtualname__
@@ -56,7 +84,8 @@ def present(name, ingress):
 
     create_tunnel = True
     create_dns = []
-    create_config = False
+    remove_dns = []
+    update_config = False
     config_service = True
 
     if tunnel:
@@ -68,30 +97,34 @@ def present(name, ingress):
         if config:
             for rule in ingress:
                 if rule not in config["config"]["ingress"]:
-                    create_config = True
+                    update_config = True
+
+            # Check if there any existing rules that need to be removed
+            for rule in config["config"]["ingress"]:
+                if rule not in ingress:
+                    update_config = True
+
+                if "hostname" in rule:
+                    if not any(rule["hostname"] in d.values() for d in ingress):
+                        dns = __salt__["cloudflare_tunnel.get_dns"](rule["hostname"])
+                        if dns:
+                            remove_dns.append(dns["name"])
         else:
-            create_config = True
+            update_config = True
     else:
-        create_config = True
+        update_config = True
 
     for rule in ingress:
         if "hostname" in rule:
             dns = __salt__["cloudflare_tunnel.get_dns"](rule["hostname"])
 
-            if dns and tunnel:
-                if (
-                    dns["name"] != rule["hostname"]
-                    and dns["content"] != f"{tunnel['id']}.cfargotunnel.com"
-                    and dns["proxied"]
-                ):
-                    create_dns.append(dns["name"])
-            else:
+            if not dns:
                 create_dns.append(rule["hostname"])
 
     if __salt__["cloudflare_tunnel.is_connector_installed"]():
         config_service = False
 
-    if not (create_tunnel or create_dns or create_config or config_service):
+    if not (create_tunnel or create_dns or update_config or config_service or remove_dns):
         ret["result"] = True
         ret["comment"] = f"Cloudflare Tunnel {name} is already in the desired state"
 
@@ -108,9 +141,9 @@ def present(name, ingress):
         ret["result"] = True
         ret["comment"] = f"Cloudflare tunnel {name} was created"
 
-    if create_config:
+    if update_config:
         if __opts__["test"]:
-            ret["comment"] = "Tunnel config will be created"
+            ret["comment"] = "Tunnel config will be created/updated"
             return ret
 
         __salt__["cloudflare_tunnel.create_tunnel_config"](tunnel["id"], {"ingress": ingress})
@@ -132,6 +165,21 @@ def present(name, ingress):
                 "type": dns["type"],
                 "proxied": dns["proxied"],
                 "comment": dns["comment"],
+                "result": "Added",
+            }
+            ret["result"] = True
+
+    if remove_dns:
+        if __opts__["test"]:
+            for dns in remove_dns:
+                ret["comment"] = "\n".join([ret["comment"], f"DNS {dns} will be removed"])
+            return ret
+
+        for hostname in remove_dns:
+            __salt__["cloudflare_tunnel.remove_dns"](hostname)
+
+            ret["changes"][hostname] = {
+                "result": "Removed",
             }
             ret["result"] = True
 

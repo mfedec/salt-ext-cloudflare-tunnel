@@ -31,8 +31,6 @@ api_token:
 account:
     CloudFlare Account ID, this can be found on the bottom right of the Overview page for your
     domain
-
-
 """
 import logging
 
@@ -180,7 +178,7 @@ def get_tunnel(tunnel_name):
 
 def create_tunnel(tunnel_name):
     """
-    Create a locally configured cloudflare tunnel
+    Create a cloudflare configured cloudflare tunnel
 
     tunnel_name
         User friendly name for the tunnel
@@ -373,9 +371,7 @@ def create_tunnel_config(tunnel_id, config):
     Create a cloudflare tunnel configuration
 
     See https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup
-    /tunnel-guide/local/local-management/configuration-file/
-
-    for config options
+    /tunnel-guide/local/local-management/configuration-file/ for config options
 
     Automatically adds the catch-all rule http_status:404
 
