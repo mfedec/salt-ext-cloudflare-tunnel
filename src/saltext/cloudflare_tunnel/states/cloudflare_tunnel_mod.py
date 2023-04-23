@@ -1,5 +1,37 @@
 """
-Salt state module
+Cloudflare Tunnel State Module
+
+This module is used to manage Cloudflare Zero Trust Tunnels
+
+:depends:
+    CloudFlare python module
+        This module requires the python wrapper for the CloudFlare API.
+        https://github.com/cloudflare/python-cloudflare
+
+    Cloudflared Tunnel Client
+        This module requires that the cloudflared utility to be installed.
+        https://github.com/cloudflare/cloudflared
+
+
+:configuration: This module can be used by specifying the name of a
+    configuration profile in the minion config, minion pillar, or master
+    config. The module will use the 'cloudflare' key by default
+
+    For example:
+
+    .. code-block:: yaml
+
+        cloudflare:
+            api_token:
+            account:
+
+
+api_token:
+    API Token with permissions to create CloudFlare Tunnels
+
+account:
+    CloudFlare Account ID, this can be found on the bottom right of the Overview page for your
+    domain
 """
 import logging
 
@@ -9,10 +41,6 @@ __virtualname__ = "cloudflare_tunnel"
 
 
 def __virtual__():
-    # To force a module not to load return something like:
-    #   return (False, "The cloudflare_tunnel state module is not implemented yet")
-
-    # Replace this with your own logic
     if "cloudflare_tunnel.get_tunnel" not in __salt__:
         return False, "The 'cloudflare_tunnel' execution module is not available"
     return __virtualname__
