@@ -198,10 +198,6 @@ def test_present_multiple_dns():
             )
 
 
-# def test_present_update_ingress_dns_test_mode():
-# How to properly test this
-
-
 def test_present_update_ingress_dns():
     expected_result = {
         "name": "cf_tunnel_example",
