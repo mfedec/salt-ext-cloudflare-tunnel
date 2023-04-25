@@ -2,17 +2,16 @@
 
 This extension manages [Cloudflare Zero Trust Tunnels](https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/).
 
-Currently only supports remotely configured tunnels (tunnels created through the zero trust dashboard)
+Currently only supports creating remotely configured tunnels
 
 ## Requirements
 
 - The [python wrapper](https://github.com/cloudflare/python-cloudflare) for the Cloudflare API
 
-## Installation
-
-## Usage
-
 ## Docs
+
+Check out the [docs](https://mfedec.github.io/salt-ext-cloudflare-tunnel) to get started using this
+module
 
 ## Bugs
 
