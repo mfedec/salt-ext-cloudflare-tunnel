@@ -64,5 +64,4 @@ export SKIP_REQUIREMENTS_INSTALL=1
 
 # Build the docs, serve, and view in your web browser:
 python -m nox -e docs && (cd docs/_build/html; python -m webbrowser localhost:8000; python -m http.server; cd -)
-
 ```
