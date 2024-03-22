@@ -192,7 +192,7 @@ def remove_tunnel(api_token, account, tunnel_id):
     return tunnel
 
 
-def get_dns(api_token, zone_id, dns_name):
+def get_dns(api_token, zone_id, dns_name=""):
     """
     Get dns entry details
 

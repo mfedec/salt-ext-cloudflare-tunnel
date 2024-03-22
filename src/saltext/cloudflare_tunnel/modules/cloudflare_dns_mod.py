@@ -55,6 +55,64 @@ def __virtual__():
     )
 
 def get_dns(record):
-  """
-  Get dns record details
-  """
+    """
+    Get dns record details
+    """
+    print("get dns coming soon.")
+
+
+def list_dns(domain_name):
+    """
+    List dns records in zone
+    """
+    api_token = __salt__["config.get"]("cloudflare").get("api_token")
+
+    zone = cf_tunnel_utils.get_zone_id(api_token, domain_name)
+
+    if zone:
+        dns = cf_tunnel_utils.get_dns(api_token, zone[0]["id"])
+
+        print(dns)
+
+        return dns
+
+
+def create_dns(domain, name, type, content, ttl=1, proxied=True, comment=""):
+    """
+    Create DNS record
+
+    Note: Add validation TTL Value must be between 60 and 86400, with the minimum reduced to 30 for Enterprise zones.
+    
+    CLI Example:
+    
+    .. code-block:: bash
+
+        salt '*' cloudflare_dns.create_dns example.com test A 1.1.1.1 60 True "DNS Managed by SaltStack" 
+    
+    """
+
+    api_token = __salt__["config.get"]("cloudflare").get("api_token")
+
+    zone = cf_tunnel_utils.get_zone_id(api_token, domain)
+
+    if zone:
+        dns_data = {
+            "name": name,
+            "type": type,
+            "content": content,
+            "ttl": ttl,
+            "proxied": proxied,
+            "comment": comment
+        }
+        dns = cf_tunnel_utils.create_dns(api_token, zone[0]["id"], dns_data)
+    else:
+        raise salt.exceptions.ArgumentValueError(
+          f"Cloudflare zone not found for {zone}"
+        )
+    
+    return dns
+
+
+
+
+# def remove_dns():

@@ -133,3 +133,5 @@ src/saltext/cloudflare_tunnel/version.py
 
 # Ignore CI generated artifacts
 artifacts/
+
+.dev-saltenv
