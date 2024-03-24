@@ -90,29 +90,33 @@ def create_dns(domain, name, type, content, ttl=1, proxied=True, comment=""):
         salt '*' cloudflare_dns.create_dns example.com test A 1.1.1.1 60 True "DNS Managed by SaltStack" 
     
     """
+    # Will add more later as I understand more.
+    RECORD_TYPES = ["A", "AAAA", "CNAME", "TXT"]
+    
+    if type in RECORD_TYPES:
+        api_token = __salt__["config.get"]("cloudflare").get("api_token")
 
-    api_token = __salt__["config.get"]("cloudflare").get("api_token")
+        zone = cf_tunnel_utils.get_zone_id(api_token, domain)
 
-    zone = cf_tunnel_utils.get_zone_id(api_token, domain)
-
-    if zone:
-        dns_data = {
-            "name": name,
-            "type": type,
-            "content": content,
-            "ttl": ttl,
-            "proxied": proxied,
-            "comment": comment
-        }
-        dns = cf_tunnel_utils.create_dns(api_token, zone[0]["id"], dns_data)
+        if zone:
+            dns_data = {
+                "name": name,
+                "type": type,
+                "content": content,
+                "ttl": ttl,
+                "proxied": proxied,
+                "comment": comment
+            }
+            dns = cf_tunnel_utils.create_dns(api_token, zone[0]["id"], dns_data)
+        else:
+            raise salt.exceptions.ArgumentValueError(
+                f"Cloudflare zone not found for {domain}"
+            )
     else:
         raise salt.exceptions.ArgumentValueError(
-          f"Cloudflare zone not found for {zone}"
+            f"Not a valid type {type} - must be one of {RECORD_TYPES}"
         )
     
     return dns
-
-
-
 
 # def remove_dns():
