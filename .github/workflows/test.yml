@@ -64,11 +64,11 @@ jobs:
       max-parallel: 4
       matrix:
         python-version:
-          - 3.8
-          - 3.9
+          - '3.8'
+          - '3.9'
         salt-version:
-          - 3005.4
-          - 3006.4
+          - '3005.4'
+          - '3006.4'
 
     steps:
     - uses: actions/checkout@v4
@@ -184,10 +184,10 @@ jobs:
       max-parallel: 3
       matrix:
         include:
-          - python-version: 3.8
-            salt-version: 3005.4
-          - python-version: 3.8
-            salt-version: 3006.4
+          - python-version: '3.8'
+            salt-version: '3005.4'
+          - python-version: '3.8'
+            salt-version: '3006.4'
 
     steps:
     - uses: actions/checkout@v4
@@ -318,10 +318,10 @@ jobs:
       max-parallel: 3
       matrix:
         include:
-          - python-version: 3.9
-            salt-version: 3005.4
-          - python-version: 3.10
-            salt-version: 3006.4
+          - python-version: '3.9'
+            salt-version: '3005.4'
+          - python-version: '3.10'
+            salt-version: '3006.4'
 
     steps:
     - uses: actions/checkout@v4
