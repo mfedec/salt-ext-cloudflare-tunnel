@@ -252,7 +252,7 @@ def create_dns(api_token, zone_id, dns_data, dns_id=None):
             dns = client.zones.dns_records.post(zone_id, data=dns_data)
     except CloudFlare.exceptions.CloudFlareAPIError as exc:
         log.exception(exc)
-        raise salt.exceptions.CommandExecutionError(exc)
+        # raise salt.exceptions.CommandExecutionError(exc)
 
     return dns
 

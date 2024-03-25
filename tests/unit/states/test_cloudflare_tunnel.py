@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 import pytest
 import saltext.cloudflare_tunnel.modules.cloudflare_tunnel_mod as cloudflare_tunnel_module
+import saltext.cloudflare_tunnel.modules.cloudflare_dns_mod as cloudflare_dns_module
 import saltext.cloudflare_tunnel.states.cloudflare_tunnel_mod as cloudflare_tunnel_state
 
 
@@ -102,7 +103,7 @@ def configure_loader_modules():
             "__salt__": {
                 # "cloudflare_tunnel.example_function": cloudflare_tunnel_module.example_function,
             },
-        },
+        }
     }
 
 
@@ -130,11 +131,11 @@ def test_present():
         {
             "cloudflare_tunnel.get_tunnel": MagicMock(return_value=False),
             "cloudflare_tunnel.get_tunnel_config": MagicMock(return_value=False),
-            "cloudflare_tunnel.get_dns": MagicMock(return_value=False),
+            "cloudflare_dns.get_dns": MagicMock(return_value=False),
             "cloudflare_tunnel.is_connector_installed": MagicMock(return_value=False),
             "cloudflare_tunnel.create_tunnel": MagicMock(return_value=mock_tunnel),
             "cloudflare_tunnel.create_tunnel_config": MagicMock(return_value=mock_config),
-            "cloudflare_tunnel.create_dns": MagicMock(return_value=mock_dns),
+            "cloudflare_dns.create_dns": MagicMock(return_value=mock_dns),
             "cloudflare_tunnel.install_connector": MagicMock(return_value=True),
         },
     ):
@@ -183,11 +184,11 @@ def test_present_multiple_dns():
         {
             "cloudflare_tunnel.get_tunnel": MagicMock(return_value=False),
             "cloudflare_tunnel.get_tunnel_config": MagicMock(return_value=False),
-            "cloudflare_tunnel.get_dns": MagicMock(return_value=False),
+            "cloudflare_dns.get_dns": MagicMock(return_value=False),
             "cloudflare_tunnel.is_connector_installed": MagicMock(return_value=False),
             "cloudflare_tunnel.create_tunnel": MagicMock(return_value=mock_tunnel),
             "cloudflare_tunnel.create_tunnel_config": MagicMock(return_value=mock_config_multiple),
-            "cloudflare_tunnel.create_dns": MagicMock(side_effect=mock_dns_multiple),
+            "cloudflare_dns.create_dns": MagicMock(side_effect=mock_dns_multiple),
             "cloudflare_tunnel.install_connector": MagicMock(return_value=True),
         },
     ):
@@ -250,11 +251,11 @@ def test_present_update_ingress_dns():
         {
             "cloudflare_tunnel.get_tunnel": MagicMock(return_value=mock_tunnel),
             "cloudflare_tunnel.get_tunnel_config": MagicMock(return_value=mock_config),
-            "cloudflare_tunnel.get_dns": MagicMock(side_effect=[mock_dns, False, mock_dns]),
+            "cloudflare_dns.get_dns": MagicMock(side_effect=[mock_dns, False, mock_dns]),
             "cloudflare_tunnel.is_connector_installed": MagicMock(return_value=True),
             "cloudflare_tunnel.create_tunnel_config": MagicMock(return_value=updated_mock_config),
-            "cloudflare_tunnel.create_dns": MagicMock(return_value=updated_mock_dns),
-            "cloudflare_tunnel.remove_dns": MagicMock(return_value=True),
+            "cloudflare_dns.create_dns": MagicMock(return_value=updated_mock_dns),
+            "cloudflare_dns.remove_dns": MagicMock(return_value=True),
         },
     ):
         with patch.dict(cloudflare_tunnel_state.__opts__, {"test": False}):

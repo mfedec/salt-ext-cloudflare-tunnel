@@ -4,6 +4,7 @@ from unittest.mock import patch
 import pytest
 import salt.exceptions
 import saltext.cloudflare_tunnel.modules.cloudflare_tunnel_mod as cloudflare_tunnel_module
+import saltext.cloudflare_tunnel.modules.cloudflare_dns_mod as cloudflare_dns_module
 
 
 @pytest.fixture
@@ -20,6 +21,7 @@ def configure_loader_modules():
     }
     return {
         cloudflare_tunnel_module: module_globals,
+        cloudflare_dns_module: module_globals,
     }
 
 
@@ -28,7 +30,7 @@ def configure_loader_modules():
 @pytest.fixture
 def mock_get_zone_id():
     with patch(
-        "saltext.cloudflare_tunnel.modules.cloudflare_tunnel_mod._get_zone_id",
+        "saltext.cloudflare_tunnel.modules.cloudflare_dns_mod._get_zone_id",
         MagicMock(return_value={"id": "1234ABC", "name": "example.com", "status": "active"}),
     ):
         yield
@@ -69,7 +71,7 @@ def test_remove_dns_error_returned(mock_get_zone_id):  # pylint: disable=unused-
             with pytest.raises(
                 salt.exceptions.CommandExecutionError, match="Issue removing DNS entry"
             ):
-                assert cloudflare_tunnel_module.remove_dns("test.example.com")
+                assert cloudflare_dns_module.remove_dns("test.example.com")
 
 
 def test_remove_dns_does_not_exist(mock_get_zone_id):  # pylint: disable=unused-argument
@@ -81,7 +83,7 @@ def test_remove_dns_does_not_exist(mock_get_zone_id):  # pylint: disable=unused-
             salt.exceptions.ArgumentValueError,
             match="Could not find DNS entry for test.example.com",
         ):
-            cloudflare_tunnel_module.remove_dns("test.example.com")
+            cloudflare_dns_module.remove_dns("test.example.com")
 
 
 def test_remove_dns(mock_get_zone_id):  # pylint: disable=unused-argument
@@ -116,7 +118,7 @@ def test_remove_dns(mock_get_zone_id):  # pylint: disable=unused-argument
             "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.remove_dns",
             MagicMock(return_value=mock_remove),
         ):
-            assert cloudflare_tunnel_module.remove_dns("test.example.com") is True
+            assert cloudflare_dns_module.remove_dns("test.example.com") is True
 
 
 def test_create_dns_if_does_not_exist(mock_get_zone_id):  # pylint: disable=unused-argument
@@ -157,7 +159,7 @@ def test_create_dns_if_does_not_exist(mock_get_zone_id):  # pylint: disable=unus
             MagicMock(return_value=mock_dns),
         ):
             assert (
-                cloudflare_tunnel_module.create_dns("example.com", "134129123912SADASD91231SAD")
+                cloudflare_dns_module.create_dns("example.com", "A", "198.51.100.4")
                 == expected_result
             )
 
@@ -203,7 +205,7 @@ def test_create_dns_if_exist(mock_get_zone_id):  # pylint: disable=unused-argume
             MagicMock(return_value=mock_dns[0]),
         ):
             assert (
-                cloudflare_tunnel_module.create_dns("example.com", "134129123912SADASD91231SAD")
+                cloudflare_dns_module.create_dns("example.com", "A", "198.51.100.4")
                 == expected_result
             )
 
@@ -245,7 +247,7 @@ def test_get_dns_returns_dns(mock_get_zone_id):  # pylint: disable=unused-argume
         "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.get_dns",
         MagicMock(return_value=mock_dns),
     ):
-        assert cloudflare_tunnel_module.get_dns("example.com") == expected_result
+        assert cloudflare_dns_module.get_dns("example.com") == expected_result
 
 
 def test_get_dns_no_dns(mock_get_zone_id):  # pylint: disable=unused-argument
@@ -253,16 +255,16 @@ def test_get_dns_no_dns(mock_get_zone_id):  # pylint: disable=unused-argument
         "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.get_dns",
         MagicMock(return_value=False),
     ):
-        assert cloudflare_tunnel_module.get_dns("example.com") is False
+        assert cloudflare_dns_module.get_dns("example.com") is False
 
 
 def test_get_dns_no_zone():
     with patch(
-        "saltext.cloudflare_tunnel.modules.cloudflare_tunnel_mod._get_zone_id",
+        "saltext.cloudflare_tunnel.modules.cloudflare_dns_mod._get_zone_id",
         MagicMock(return_value=False),
     ):
         with pytest.raises(salt.exceptions.ArgumentValueError):
-            assert cloudflare_tunnel_module.get_dns("example.com") is False
+            assert cloudflare_dns_module.get_dns("example.com") is False
 
 
 def test_get_tunnel_returns_tunnel():
