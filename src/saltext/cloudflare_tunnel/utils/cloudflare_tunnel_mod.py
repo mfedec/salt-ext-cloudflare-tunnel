@@ -9,6 +9,8 @@ import random
 import string
 
 import salt.exceptions
+import saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod as cf_tunnel_utils
+import saltext.cloudflare_tunnel.utils.cloudflare_mod as cf_utils
 
 try:
     import CloudFlare
@@ -50,43 +52,6 @@ def _generate_secret():
     return base64_string
 
 
-def _get_client(api_token):
-    """
-    Creates a cloudflare object to use for connecting to the api
-
-    api_token
-        Cloudflare API token that has permissions to edit cloudflare tunnels
-    """
-    try:
-        client = CloudFlare.CloudFlare(token=api_token)
-    except CloudFlare.exceptions.CloudFlareAPIError as exc:
-        log.exception(exc)
-        raise salt.exceptions.CommandExecutionError(exc)
-
-    return client
-
-
-def get_zone_id(api_token, domain_name):
-    """
-    Gets the zone for the specified domain name
-
-    api_token
-        Cloudflare API token that has permissions to edit cloudflare tunnels
-
-    domain_name
-        domain name to get zone for (something.example.com)
-    """
-    client = _get_client(api_token)
-
-    try:
-        zone = client.zones.get(params={"name": domain_name})
-    except CloudFlare.exceptions.CloudFlareAPIError as exc:
-        log.exception(exc)
-        raise salt.exceptions.CommandExecutionError(exc)
-
-    return zone
-
-
 def get_tunnel_token(api_token, account, tunnel_id):
     """
     Gets the token used to associate cloudflared with a specific tunnel
@@ -100,7 +65,7 @@ def get_tunnel_token(api_token, account, tunnel_id):
     tunnel_id
         ID of the tunnel
     """
-    client = _get_client(api_token)
+    client = cf_utils._get_client(api_token)
 
     try:
         token = client.accounts.cfd_tunnel.token.get(account, tunnel_id)
@@ -124,7 +89,7 @@ def get_tunnel(api_token, account, tunnel_name):
     tunnel_name
         Name for the new tunnel
     """
-    client = _get_client(api_token)
+    client = cf_utils._get_client(api_token)
 
     try:
         tunnel = client.accounts.cfd_tunnel.get(
@@ -150,7 +115,7 @@ def create_tunnel(api_token, account, tunnel_name):
     tunnel_name
         Name for the new tunnel
     """
-    client = _get_client(api_token)
+    client = cf_utils._get_client(api_token)
 
     try:
         tunnel = client.accounts.cfd_tunnel.post(
@@ -181,7 +146,7 @@ def remove_tunnel(api_token, account, tunnel_id):
     tunnel_id
         ID of the tunnel
     """
-    client = _get_client(api_token)
+    client = cf_utils._get_client(api_token)
 
     try:
         tunnel = client.accounts.cfd_tunnel.delete(account, tunnel_id)
@@ -190,95 +155,6 @@ def remove_tunnel(api_token, account, tunnel_id):
         raise salt.exceptions.CommandExecutionError(exc)
 
     return tunnel
-
-
-def get_dns(api_token, zone_id, dns_name=""):
-    """
-    Get dns entry details
-
-    api_token
-        Cloudflare API token that has permissions to edit cloudflare tunnels
-
-    zone_id
-        Cloudflare Zone ID
-
-    dns_name
-        DNS record name (something.example.com)
-    """
-    client = _get_client(api_token)
-
-    try:
-        dns = client.zones.dns_records.get(zone_id, params={"name": dns_name})
-    except CloudFlare.exceptions.CloudFlareAPIError as exc:
-        log.exception(exc)
-        raise salt.exceptions.CommandExecutionError(exc)
-
-    return dns
-
-
-def create_dns(api_token, zone_id, dns_data, dns_id=None):
-    """
-    Create a cloudflare dns entry
-
-    api_token
-        Cloudflare API token that has permissions to edit cloudflare tunnels
-
-    zone_id
-        Cloudflare Zone ID
-
-    dns_data
-        dns configuration in json format
-        See: https://api.cloudflare.com/#dns-records-for-a-zone-create-dns-record
-
-        {
-            "name": "",
-            "type": "",
-            "content": "",
-            "ttl": "",
-            "proxied": "",
-            "comment": ""
-        }
-
-    dns_id
-        ID of the DNS entry to remove
-        This argument is optional. If supplied then it will edit a dns entry
-    """
-    client = _get_client(api_token)
-
-    try:
-        if dns_id:
-            dns = client.zones.dns_records.put(zone_id, dns_id, data=dns_data)
-        else:
-            dns = client.zones.dns_records.post(zone_id, data=dns_data)
-    except CloudFlare.exceptions.CloudFlareAPIError as exc:
-        log.exception(exc)
-        # raise salt.exceptions.CommandExecutionError(exc)
-
-    return dns
-
-
-def remove_dns(api_token, zone_id, dns_id):
-    """
-    Remove a cloudflare dns entry
-
-    api_token
-        Cloudflare API token that has permissions to edit cloudflare tunnels
-
-    zone_id
-        Cloudflare Zone ID
-
-    dns_id
-        ID of the DNS entry to remove
-    """
-    client = _get_client(api_token)
-
-    try:
-        dns = client.zones.dns_records.delete(zone_id, dns_id)
-    except CloudFlare.exceptions.CloudFlareAPIError as exc:
-        log.exception(exc)
-        raise salt.exceptions.CommandExecutionError(exc)
-
-    return dns
 
 
 def get_tunnel_config(api_token, account, tunnel_id):
@@ -294,7 +170,7 @@ def get_tunnel_config(api_token, account, tunnel_id):
     tunnel_id
         ID of the Cloudflare tunnel
     """
-    client = _get_client(api_token)
+    client = cf_utils._get_client(api_token)
 
     try:
         tunnel_config = client.accounts.cfd_tunnel.configurations.get(account, tunnel_id)
@@ -322,7 +198,7 @@ def create_tunnel_config(api_token, account, tunnel_id, config):
         The tunnel configuration and ingress rules in JSON format
         See: https://api.cloudflare.com/#cloudflare-tunnel-configuration-properties
     """
-    client = _get_client(api_token)
+    client = cf_utils._get_client(api_token)
 
     try:
         tunnel_config = client.accounts.cfd_tunnel.configurations.put(

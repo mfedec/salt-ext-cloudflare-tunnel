@@ -31,7 +31,8 @@ import logging
 
 import salt.exceptions
 import salt.utils
-import saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod as cf_tunnel_utils
+import saltext.cloudflare_tunnel.utils.cloudflare_mod as cf_utils
+import saltext.cloudflare_tunnel.utils.cloudflare_dns_mod as cf_dns_utils
 
 try:
     import CloudFlare
@@ -96,7 +97,7 @@ def _get_zone_id(domain_name):
     domain_length = len(domain_split)
     domain = f"{domain_split[domain_length - 2]}.{domain_split[domain_length - 1]}"
 
-    zone_details = cf_tunnel_utils.get_zone_id(api_token, domain)
+    zone_details = cf_utils.get_zone_id(api_token, domain)
 
     if zone_details:
         ret_zone_details = {}
@@ -126,7 +127,7 @@ def get_dns(dns_name):
     zone = _get_zone_id(dns_name)
 
     if zone:
-        dns = cf_tunnel_utils.get_dns(api_token, zone["id"], dns_name)
+        dns = cf_dns_utils.get_dns(api_token, zone["id"], dns_name)
 
         if dns:
             dns_details = {}
@@ -145,10 +146,10 @@ def list_dns(domain_name):
     """
     api_token = __salt__["config.get"]("cloudflare").get("api_token")
 
-    zone = cf_tunnel_utils.get_zone_id(api_token, domain_name)
+    zone = _get_zone_id(domain_name)
 
     if zone:
-        dns = cf_tunnel_utils.get_dns(api_token, zone[0]["id"])
+        dns = cf_dns_utils.get_dns(api_token, zone[0]["id"])
 
         print(dns)
 
@@ -196,9 +197,9 @@ def create_dns(hostname, type, content, ttl=1, proxied=True, comment=""):
             }
             if dns:
                 if dns["content"] != content:
-                    dns = cf_tunnel_utils.create_dns(api_token, zone["id"], dns_data, dns["id"])
+                    dns = cf_dns_utils.create_dns(api_token, zone["id"], dns_data, dns["id"])
             else:
-                dns = cf_tunnel_utils.create_dns(api_token, zone["id"], dns_data)
+                dns = cf_dns_utils.create_dns(api_token, zone["id"], dns_data)
         else:
             raise salt.exceptions.ArgumentValueError(
                 f"Cloudflare zone not found for {hostname}"
@@ -230,7 +231,7 @@ def remove_dns(hostname):
     dns = get_dns(hostname)
 
     if dns:
-        ret_dns = cf_tunnel_utils.remove_dns(api_token, dns["zone_id"], dns["id"])
+        ret_dns = cf_dns_utils.remove_dns(api_token, dns["zone_id"], dns["id"])
         if ret_dns:
             return True
         else:

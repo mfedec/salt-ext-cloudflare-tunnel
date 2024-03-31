@@ -30,8 +30,8 @@ def configure_loader_modules():
 @pytest.fixture
 def mock_get_zone_id():
     with patch(
-        "saltext.cloudflare_tunnel.modules.cloudflare_dns_mod._get_zone_id",
-        MagicMock(return_value={"id": "1234ABC", "name": "example.com", "status": "active"}),
+        "saltext.cloudflare_tunnel.utils.cloudflare_mod.get_zone_id",
+        MagicMock(return_value=[{"id": "1234ABC", "name": "example.com", "status": "active"}]),
     ):
         yield
 
@@ -61,11 +61,11 @@ def test_remove_dns_error_returned(mock_get_zone_id):  # pylint: disable=unused-
     mock_remove = False
 
     with patch(
-        "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.get_dns",
+        "saltext.cloudflare_tunnel.utils.cloudflare_dns_mod.get_dns",
         MagicMock(return_value=mock_dns),
     ):
         with patch(
-            "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.remove_dns",
+            "saltext.cloudflare_tunnel.utils.cloudflare_dns_mod.remove_dns",
             MagicMock(return_value=mock_remove),
         ):
             with pytest.raises(
@@ -76,7 +76,7 @@ def test_remove_dns_error_returned(mock_get_zone_id):  # pylint: disable=unused-
 
 def test_remove_dns_does_not_exist(mock_get_zone_id):  # pylint: disable=unused-argument
     with patch(
-        "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.get_dns",
+        "saltext.cloudflare_tunnel.utils.cloudflare_dns_mod.get_dns",
         MagicMock(return_value=[]),
     ):
         with pytest.raises(
@@ -111,11 +111,11 @@ def test_remove_dns(mock_get_zone_id):  # pylint: disable=unused-argument
     mock_remove = {"id": "372e67954025e0ba6aaa6d586b9e0b59"}
 
     with patch(
-        "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.get_dns",
+        "saltext.cloudflare_tunnel.utils.cloudflare_dns_mod.get_dns",
         MagicMock(return_value=mock_dns),
     ):
         with patch(
-            "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.remove_dns",
+            "saltext.cloudflare_tunnel.utils.cloudflare_dns_mod.remove_dns",
             MagicMock(return_value=mock_remove),
         ):
             assert cloudflare_dns_module.remove_dns("test.example.com") is True
@@ -152,10 +152,10 @@ def test_create_dns_if_does_not_exist(mock_get_zone_id):  # pylint: disable=unus
     }
 
     with patch(
-        "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.get_dns", MagicMock(return_value=[])
+        "saltext.cloudflare_tunnel.utils.cloudflare_dns_mod.get_dns", MagicMock(return_value=[])
     ):
         with patch(
-            "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.create_dns",
+            "saltext.cloudflare_tunnel.utils.cloudflare_dns_mod.create_dns",
             MagicMock(return_value=mock_dns),
         ):
             assert (
@@ -197,11 +197,11 @@ def test_create_dns_if_exist(mock_get_zone_id):  # pylint: disable=unused-argume
     }
 
     with patch(
-        "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.get_dns",
+        "saltext.cloudflare_tunnel.utils.cloudflare_dns_mod.get_dns",
         MagicMock(return_value=mock_dns),
     ):
         with patch(
-            "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.create_dns",
+            "saltext.cloudflare_tunnel.utils.cloudflare_dns_mod.create_dns",
             MagicMock(return_value=mock_dns[0]),
         ):
             assert (
@@ -244,7 +244,7 @@ def test_get_dns_returns_dns(mock_get_zone_id):  # pylint: disable=unused-argume
         "comment": "Domain verification record",
     }
     with patch(
-        "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.get_dns",
+        "saltext.cloudflare_tunnel.utils.cloudflare_dns_mod.get_dns",
         MagicMock(return_value=mock_dns),
     ):
         assert cloudflare_dns_module.get_dns("example.com") == expected_result
@@ -252,7 +252,7 @@ def test_get_dns_returns_dns(mock_get_zone_id):  # pylint: disable=unused-argume
 
 def test_get_dns_no_dns(mock_get_zone_id):  # pylint: disable=unused-argument
     with patch(
-        "saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod.get_dns",
+        "saltext.cloudflare_tunnel.utils.cloudflare_dns_mod.get_dns",
         MagicMock(return_value=False),
     ):
         assert cloudflare_dns_module.get_dns("example.com") is False
