@@ -178,56 +178,6 @@ def remove_tunnel(tunnel_id):
     else:
         raise salt.exceptions.ArgumentValueError(f"Unable to find tunnel with id {tunnel_id}")
 
-# TODO: Remove and use cloudflare_dns.create_dns
-# def create_dns(hostname, tunnel_id):
-#     """
-#     Create cname record for the tunnel
-
-#     hostname
-#         DNS record name
-
-#     tunnel_id
-#         tunnel uuid
-
-#     CLI Example:
-
-#     .. code-block:: bash
-
-#         salt '*' cloudflare_tunnel.create_dns test.example.com tunnel_id
-
-#     Returns a dictionary containing the dns details
-#     """
-#     api_token = __salt__["config.get"]("cloudflare").get("api_token")
-#     zone = _get_zone_id(hostname)
-
-#     if zone:
-#         # Split the dns name to pull out just the domain name to grab the zone id
-#         domain_split = hostname.split(".")
-
-#         dns = get_dns(hostname)
-
-#         dns_data = {
-#             "name": domain_split[0],
-#             "type": "CNAME",
-#             "content": f"{tunnel_id}.cfargotunnel.com",
-#             "ttl": 1,
-#             "proxied": True,
-#             "comment": "DNS managed by SaltStack",
-#         }
-
-#         if dns:
-#             # If DNS exist, check to see if it is pointing to the correct tunnel
-#             if dns["content"] != f"{tunnel_id}.cfargotunnel.com":
-#                 dns = cf_tunnel_utils.create_dns(api_token, zone["id"], dns_data, dns["id"])
-#         else:
-#             dns = cf_tunnel_utils.create_dns(api_token, zone["id"], dns_data)
-#     else:
-#         raise salt.exceptions.ArgumentValueError(
-#             f"Cloudflare zone not found for hostname {hostname}"
-#         )
-
-#     return _simple_dns(dns)
-
 
 def get_tunnel_config(tunnel_id):
     """
