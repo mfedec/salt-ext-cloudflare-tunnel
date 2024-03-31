@@ -179,7 +179,6 @@ def create_dns(hostname, type, content, ttl=1, proxied=True, comment=""):
         api_token = __salt__["config.get"]("cloudflare").get("api_token")
 
         zone = _get_zone_id(hostname)
-        # zone = cf_tunnel_utils.get_zone_id(api_token, domain)
 
         if zone:
             # Split the dns name to pull out just the domain name to grab the zone id
