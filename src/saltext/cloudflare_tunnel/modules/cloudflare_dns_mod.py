@@ -198,7 +198,7 @@ def create_dns(hostname, type, content, ttl=1, proxied=True, comment=""):
                 if dns["content"] != content:
                     dns = cf_tunnel_utils.create_dns(api_token, zone["id"], dns_data, dns["id"])
             else:
-                dns = cf_tunnel_utils.create_dns(api_token, zone["id"], dns_data, dns["id"])
+                dns = cf_tunnel_utils.create_dns(api_token, zone["id"], dns_data)
         else:
             raise salt.exceptions.ArgumentValueError(
                 f"Cloudflare zone not found for {hostname}"
