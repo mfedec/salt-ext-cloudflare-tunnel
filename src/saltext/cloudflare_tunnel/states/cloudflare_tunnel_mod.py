@@ -118,10 +118,10 @@ def present(name, ingress):
                             remove_dns.append(dns["name"])
         else:
             update_config = True
-            config_changes["new"] = ingress
+            config_changes["new"] = dict(ingress)
     else:
         update_config = True
-        config_changes["new"] = ingress
+        config_changes["new"] = dict(ingress)
 
     for rule in ingress:
         if "hostname" in rule:
