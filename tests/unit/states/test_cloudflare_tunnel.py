@@ -112,7 +112,13 @@ def test_present():
         "name": "cf_tunnel_example",
         "changes": {
             "tunnel created": "cf_tunnel_example",
-            "tunnel config": "created/updated",
+            "tunnel config": {
+                "old": [],
+                "new": [
+                    {"hostname": "test.example.com", "service": "https://localhost:8000"},
+                    {"service": "http_status:404"},
+                ],
+            },
             "test.example.com": {
                 "comment": "Managed by SaltStack",
                 "content": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415.cfargotunnel.com",
@@ -151,7 +157,15 @@ def test_present_multiple_dns():
         "name": "cf_tunnel_example",
         "changes": {
             "tunnel created": "cf_tunnel_example",
-            "tunnel config": "created/updated",
+            "tunnel config": {
+                "old": [],
+                "new": [
+                    {"hostname": "test.example.com", "service": "https://localhost:8000"},
+                    {"hostname": "test-2.example.com", "service": "https://localhost:443"},
+                    {"hostname": "test-3.example.com", "service": "https://localhost:7474"},
+                    {"service": "http_status:404"},
+                ],
+            },
             "test.example.com": {
                 "comment": "Managed by SaltStack",
                 "content": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415.cfargotunnel.com",
@@ -203,7 +217,10 @@ def test_present_update_ingress_dns():
     expected_result = {
         "name": "cf_tunnel_example",
         "changes": {
-            "tunnel config": "created/updated",
+            "tunnel config": {
+                "old": [{"hostname": "test.example.com", "service": "https://localhost:8000"}],
+                "new": [{"hostname": "test-4.example.com", "service": "https://localhost:8000"}],
+            },
             "test-4.example.com": {
                 "content": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415.cfargotunnel.com",
                 "type": "CNAME",
@@ -269,7 +286,10 @@ def test_present_remove_ingress_rule():
     expected_result = {
         "name": "cf_tunnel_example",
         "changes": {
-            "tunnel config": "created/updated",
+            "tunnel config": {
+                "new": [],
+                "old": [{"hostname": "test.example.com", "service": "https://localhost:8000"}],
+            },
             "test.example.com": {
                 "result": "Removed",
             },
@@ -315,7 +335,10 @@ def test_present_update_ingress_rule():
     expected_result = {
         "name": "cf_tunnel_example",
         "changes": {
-            "tunnel config": "created/updated",
+            "tunnel config": {
+                "new": [{"hostname": "test.example.com", "service": "https://localhost:8080"}],
+                "old": [{"hostname": "test.example.com", "service": "https://localhost:8000"}],
+            },
         },
         "result": True,
         "comment": "",
