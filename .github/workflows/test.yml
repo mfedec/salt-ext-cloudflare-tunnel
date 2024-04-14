@@ -1,15 +1,15 @@
 
 name: Testing
 
-on: [workflow_dispatch] #push, pull_request]
+on: [workflow_dispatch, push, pull_request]
 
 jobs:
   Pre-Commit:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Set up Python
-      uses: actions/setup-python@v1
+      uses: actions/setup-python@v5
       with:
         python-version: 3.7
     - name: Set Cache Key
@@ -18,11 +18,11 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y libxml2 libxml2-dev libxslt-dev
-    - uses: actions/cache@v1
+    - uses: actions/cache@v4
       with:
         path: ~/.cache/pre-commit
         key: pre-commit|${{ env.PY }}|${{ hashFiles('.pre-commit-config.yaml') }}
-    - uses: pre-commit/action@v1.0.1
+    - uses: pre-commit/action@v3.0.1
 
   Docs:
     runs-on: ubuntu-latest
@@ -31,10 +31,10 @@ jobs:
     timeout-minutes: 10
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     - name: Set up Python 3.7 For Nox
-      uses: actions/setup-python@v1
+      uses: actions/setup-python@v5
       with:
         python-version: 3.7
 
@@ -64,17 +64,17 @@ jobs:
       max-parallel: 4
       matrix:
         python-version:
-          - 3.6
-          - 3.7
-          - 3.8
+          - '3.8'
+          - '3.9'
         salt-version:
-          - 3002.6
+          - '3005.4'
+          - '3006.4'
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v1
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
 
@@ -100,7 +100,7 @@ jobs:
       if: always()
       id: codecov-flags
       run: |
-        echo ::set-output name=flags::$(python -c "import sys; print('{},{},salt_{}'.format('${{ runner.os }}'.replace('-latest', ''), 'py{}{}'.format(*sys.version_info), '_'.join(str(v) for v in '${{ matrix.salt-version }}'.replace('==', '_').split('.'))))")
+        echo "name=flags::$(python -c "import sys; print('{},{},salt_{}'.format('${{ runner.os }}'.replace('-latest', ''), 'py{}{}'.format(*sys.version_info), '_'.join(str(v) for v in '${{ matrix.salt-version }}'.replace('==', '_').split('.'))))")" >> $GITHUB_OUTPUT
 
     - name: Upload Project Code Coverage
       if: always()
@@ -183,19 +183,29 @@ jobs:
       fail-fast: false
       max-parallel: 3
       matrix:
-        python-version:
-          - 3.6
-          - 3.7
-        salt-version:
-          - 3002.6
+        include:
+          - python-version: '3.8'
+            salt-version: '3005.4'
+          - python-version: '3.8'
+            salt-version: '3006.4'
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v1
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
+
+    - name: Download libeay32.dll
+      run: |
+        export PY_LOC=$(which python.exe)
+        echo ${PY_LOC}
+        export PY_DIR=$(dirname ${PY_LOC})
+        echo ${PY_DIR}
+        curl https://repo.saltproject.io/windows/dependencies/64/libeay32.dll --output ${PY_DIR}/libeay32.dll
+        ls -l ${PY_DIR}
+      shell: bash
 
     - name: Install Nox
       run: |
@@ -206,7 +216,7 @@ jobs:
       shell: bash
       env:
         SALT_REQUIREMENT: salt==${{ matrix.salt-version }}
-        EXTRA_REQUIREMENTS_INSTALL: Cython
+        # EXTRA_REQUIREMENTS_INSTALL: Cython
       run: |
         export PATH="/C/Program Files (x86)/Windows Kits/10/bin/10.0.18362.0/x64;$PATH"
         nox --force-color -e tests-3 --install-only
@@ -224,7 +234,7 @@ jobs:
       if: always()
       id: codecov-flags
       run: |
-        echo ::set-output name=flags::$(python -c "import sys; print('{},{},salt_{}'.format('${{ runner.os }}'.replace('-latest', ''), 'py{}{}'.format(*sys.version_info), '_'.join(str(v) for v in '${{ matrix.salt-version }}'.replace('==', '_').split('.'))))")
+        echo "name=flags::$(python -c "import sys; print('{},{},salt_{}'.format('${{ runner.os }}'.replace('-latest', ''), 'py{}{}'.format(*sys.version_info), '_'.join(str(v) for v in '${{ matrix.salt-version }}'.replace('==', '_').split('.'))))")" >> $GITHUB_OUTPUT
 
     - name: Upload Project Code Coverage
       if: always()
@@ -307,17 +317,17 @@ jobs:
       fail-fast: false
       max-parallel: 3
       matrix:
-        python-version:
-          - 3.6
-          - 3.7
-        salt-version:
-          - 3002.6
+        include:
+          - python-version: '3.9'
+            salt-version: '3005.4'
+          - python-version: '3.10'
+            salt-version: '3006.4'
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v1
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
 
@@ -343,7 +353,7 @@ jobs:
       if: always()
       id: codecov-flags
       run: |
-        echo ::set-output name=flags::$(python -c "import sys; print('{},{},salt_{}'.format('${{ runner.os }}'.replace('-latest', ''), 'py{}{}'.format(*sys.version_info), '_'.join(str(v) for v in '${{ matrix.salt-version }}'.replace('==', '_').split('.'))))")
+        echo "name=flags::$(python -c "import sys; print('{},{},salt_{}'.format('${{ runner.os }}'.replace('-latest', ''), 'py{}{}'.format(*sys.version_info), '_'.join(str(v) for v in '${{ matrix.salt-version }}'.replace('==', '_').split('.'))))")" >> $GITHUB_OUTPUT
 
     - name: Upload Project Code Coverage
       if: always()

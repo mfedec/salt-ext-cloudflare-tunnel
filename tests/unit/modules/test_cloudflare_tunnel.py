@@ -266,21 +266,6 @@ def test_get_dns_no_zone():
 
 
 def test_get_tunnel_returns_tunnel():
-    # Not sure what exactly this patch.dict is doing.. works with or without it..
-    # with patch.dict(
-    #     cloudflare_tunnel_module.__pillar__,
-    #     {
-    #         "cloudflare": {
-    #             "api_token": "SOMEASDKJA2123ASD",
-    #             "account": "aLKAJSDJKLADLJKA",
-    #             "tunnel": {
-    #                 "hostname": "test.example.com",
-    #                 "password": "http://127.0.0.1:8080",
-    #             }
-    #         }
-    #     },
-    # ):
-
     mock_tunnel = [
         {
             "id": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415",
@@ -324,7 +309,6 @@ def test_get_tunnel_returns_tunnel():
 
 
 def test_get_tunnel_returns_nothing():
-    # Not sure what exactly this patch.dict is doing.. works with or without it..
     with patch.dict(
         cloudflare_tunnel_module.__pillar__,
         {
