@@ -113,19 +113,19 @@ def present(name, ingress):
 
                 if "hostname" in rule:
                     if not any(rule["hostname"] in d.values() for d in ingress):
-                        dns = __salt__["cloudflare_dns.get_dns"](rule["hostname"])
+                        dns = __salt__["cloudflare_tunnel.get_dns"](rule["hostname"])
                         if dns:
                             remove_dns.append(dns["name"])
         else:
             update_config = True
-            config_changes["new"] = ingress
+            config_changes["new"] = dict(ingress)
     else:
         update_config = True
-        config_changes["new"] = ingress
+        config_changes["new"] = dict(ingress)
 
     for rule in ingress:
         if "hostname" in rule:
-            dns = __salt__["cloudflare_dns.get_dns"](rule["hostname"])
+            dns = __salt__["cloudflare_tunnel.get_dns"](rule["hostname"])
 
             if not dns:
                 create_dns.append(rule["hostname"])
@@ -167,7 +167,7 @@ def present(name, ingress):
             return ret
 
         for dns in create_dns:
-            dns = __salt__["cloudflare_dns.create_dns"](dns, f"{tunnel['id']}.cfargotunnel.com", comment="DNS Managed by SaltStack")
+            dns = __salt__["cloudflare_tunnel.create_dns"](dns, tunnel["id"])
 
             ret["changes"][dns["name"]] = {
                 "content": dns["content"],
@@ -185,7 +185,7 @@ def present(name, ingress):
             return ret
 
         for hostname in remove_dns:
-            __salt__["cloudflare_dns.remove_dns"](hostname)
+            __salt__["cloudflare_tunnel.remove_dns"](hostname)
 
             ret["changes"][hostname] = {
                 "result": "Removed",
@@ -248,10 +248,10 @@ def absent(name):
                 if "hostname" in rule:
                     hostname = rule["hostname"]
 
-                    dns = __salt__["cloudflare_dns.get_dns"](hostname)
+                    dns = __salt__["cloudflare_tunnel.get_dns"](hostname)
                     if dns:
                         dns_name = dns["name"]
-                        __salt__["cloudflare_dns.remove_dns"](dns["name"])
+                        __salt__["cloudflare_tunnel.remove_dns"](dns["name"])
                         dns_changes.append(f"{dns_name} removed")
                         ret["result"] = True
 
