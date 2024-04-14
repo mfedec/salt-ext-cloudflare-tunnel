@@ -87,6 +87,7 @@ def present(name, ingress):
     remove_dns = []
     update_config = False
     config_service = True
+    config_changes = {"old": [], "new": []}
 
     if tunnel:
         if tunnel["name"] == name:
@@ -98,10 +99,12 @@ def present(name, ingress):
             for rule in ingress:
                 if rule not in config["config"]["ingress"]:
                     update_config = True
+                    config_changes["new"].append({"hostname": rule["hostname"], "service": rule["service"]})
 
             # Check if there any existing rules that need to be removed
             for rule in config["config"]["ingress"]:
                 if rule not in ingress:
+                    config_changes["old"].append({"hostname": rule["hostname"], "service": rule["service"]})
                     update_config = True
 
                 if "hostname" in rule:
@@ -111,8 +114,10 @@ def present(name, ingress):
                             remove_dns.append(dns["name"])
         else:
             update_config = True
+            config_changes["new"] = ingress
     else:
         update_config = True
+        config_changes["new"] = ingress
 
     for rule in ingress:
         if "hostname" in rule:
@@ -148,7 +153,7 @@ def present(name, ingress):
 
         __salt__["cloudflare_tunnel.create_tunnel_config"](tunnel["id"], {"ingress": ingress})
 
-        ret["changes"].setdefault("tunnel config", "created/updated")
+        ret["changes"].setdefault("tunnel config", config_changes)
         ret["result"] = True
 
     if create_dns:
