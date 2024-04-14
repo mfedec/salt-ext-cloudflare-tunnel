@@ -114,9 +114,9 @@ def test_present():
             "tunnel config": {
                 "old": [],
                 "new": [
-                {"hostname": "test.example.com", "service": "https://localhost:8000"},
-                {"service": "http_status:404"},
-                ]
+                    {"hostname": "test.example.com", "service": "https://localhost:8000"},
+                    {"service": "http_status:404"},
+                ],
             },
             "test.example.com": {
                 "comment": "Managed by SaltStack",
@@ -162,8 +162,8 @@ def test_present_multiple_dns():
                     {"hostname": "test.example.com", "service": "https://localhost:8000"},
                     {"hostname": "test-2.example.com", "service": "https://localhost:443"},
                     {"hostname": "test-3.example.com", "service": "https://localhost:7474"},
-                    {"service": "http_status:404"}
-                    ]
+                    {"service": "http_status:404"},
+                ],
             },
             "test.example.com": {
                 "comment": "Managed by SaltStack",
@@ -218,7 +218,7 @@ def test_present_update_ingress_dns():
         "changes": {
             "tunnel config": {
                 "old": [{"hostname": "test.example.com", "service": "https://localhost:8000"}],
-                "new": [{"hostname": "test-4.example.com", "service": "https://localhost:8000"}]
+                "new": [{"hostname": "test-4.example.com", "service": "https://localhost:8000"}],
             },
             "test-4.example.com": {
                 "content": "f70ff985-a4ef-4643-bbbc-4a0ed4fc8415.cfargotunnel.com",
@@ -335,8 +335,8 @@ def test_present_update_ingress_rule():
         "name": "cf_tunnel_example",
         "changes": {
             "tunnel config": {
-                "new": [{"hostname": "test.example.com", "service": "https://localhost:8080"}], 
-                "old": [{"hostname": "test.example.com", "service": "https://localhost:8000"}]
+                "new": [{"hostname": "test.example.com", "service": "https://localhost:8080"}],
+                "old": [{"hostname": "test.example.com", "service": "https://localhost:8000"}],
             },
         },
         "result": True,

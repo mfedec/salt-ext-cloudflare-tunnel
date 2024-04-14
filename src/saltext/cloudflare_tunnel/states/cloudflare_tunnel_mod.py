@@ -99,12 +99,16 @@ def present(name, ingress):
             for rule in ingress:
                 if rule not in config["config"]["ingress"]:
                     update_config = True
-                    config_changes["new"].append({"hostname": rule["hostname"], "service": rule["service"]})
+                    config_changes["new"].append(
+                        {"hostname": rule["hostname"], "service": rule["service"]}
+                    )
 
             # Check if there any existing rules that need to be removed
             for rule in config["config"]["ingress"]:
                 if rule not in ingress:
-                    config_changes["old"].append({"hostname": rule["hostname"], "service": rule["service"]})
+                    config_changes["old"].append(
+                        {"hostname": rule["hostname"], "service": rule["service"]}
+                    )
                     update_config = True
 
                 if "hostname" in rule:
