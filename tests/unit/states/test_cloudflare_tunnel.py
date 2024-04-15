@@ -428,7 +428,15 @@ def test_present_create_tunnel_test_mode():
 def test_present_create_config_test_mode():
     expected_result = {
         "name": "cf_tunnel_example",
-        "changes": {},
+        "changes": {
+            "tunnel config": {
+                "old": [],
+                "new": [
+                    {"hostname": "test.example.com", "service": "https://localhost:8000"},
+                    {"service": "http_status:404"}
+                ],
+            },
+        },
         "result": None,
         "comment": "Tunnel config will be created/updated",
     }
