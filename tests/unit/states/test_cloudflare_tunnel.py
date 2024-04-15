@@ -433,7 +433,7 @@ def test_present_create_config_test_mode():
                 "old": [],
                 "new": [
                     {"hostname": "test.example.com", "service": "https://localhost:8000"},
-                    {"service": "http_status:404"}
+                    {"service": "http_status:404"},
                 ],
             },
         },
