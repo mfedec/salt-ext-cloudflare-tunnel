@@ -9,8 +9,8 @@ import random
 import string
 
 import salt.exceptions
-import saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod as cf_tunnel_utils
 import saltext.cloudflare_tunnel.utils.cloudflare_mod as cf_utils
+import saltext.cloudflare_tunnel.utils.cloudflare_tunnel_mod as cf_tunnel_utils
 
 try:
     import CloudFlare
