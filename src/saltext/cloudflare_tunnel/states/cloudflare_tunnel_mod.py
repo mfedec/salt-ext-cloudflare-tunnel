@@ -168,7 +168,9 @@ def present(name, ingress):
             return ret
 
         for dns in create_dns:
-            dns = __salt__["cloudflare_dns.create_dns"](dns, f"{tunnel['id']}.cfargotunnel.com", comment="DNS Managed by SaltStack")
+            dns = __salt__["cloudflare_dns.create_dns"](
+                dns, f"{tunnel['id']}.cfargotunnel.com", comment="DNS Managed by SaltStack"
+            )
 
             ret["changes"][dns["name"]] = {
                 "content": dns["content"],

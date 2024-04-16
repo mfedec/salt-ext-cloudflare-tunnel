@@ -2,8 +2,8 @@ from unittest.mock import MagicMock
 from unittest.mock import patch
 
 import pytest
-import saltext.cloudflare_tunnel.modules.cloudflare_tunnel_mod as cloudflare_tunnel_module
 import saltext.cloudflare_tunnel.modules.cloudflare_dns_mod as cloudflare_dns_module
+import saltext.cloudflare_tunnel.modules.cloudflare_tunnel_mod as cloudflare_tunnel_module
 import saltext.cloudflare_tunnel.states.cloudflare_tunnel_mod as cloudflare_tunnel_state
 
 
@@ -103,7 +103,7 @@ def configure_loader_modules():
             "__salt__": {
                 # "cloudflare_tunnel.example_function": cloudflare_tunnel_module.example_function,
             },
-        }
+        },
     }
 
 

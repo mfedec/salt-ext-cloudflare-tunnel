@@ -26,13 +26,12 @@ account:
     CloudFlare Account ID, this can be found on the bottom right of the Overview page for your
     domain
 """
-
 import logging
 
 import salt.exceptions
 import salt.utils
-import saltext.cloudflare_tunnel.utils.cloudflare_mod as cf_utils
 import saltext.cloudflare_tunnel.utils.cloudflare_dns_mod as cf_dns_utils
+import saltext.cloudflare_tunnel.utils.cloudflare_mod as cf_utils
 
 try:
     import CloudFlare
@@ -140,22 +139,6 @@ def get_dns(dns_name):
     return _simple_dns(dns_details)
 
 
-def list_dns(domain_name):
-    """
-    List dns records in zone
-    """
-    api_token = __salt__["config.get"]("cloudflare").get("api_token")
-
-    zone = _get_zone_id(domain_name)
-
-    if zone:
-        dns = cf_dns_utils.get_dns(api_token, zone[0]["id"])
-
-        print(dns)
-
-        return dns
-
-
 def create_dns(hostname, type, content, ttl=1, proxied=True, comment=""):
     """
     Create DNS record
@@ -163,19 +146,19 @@ def create_dns(hostname, type, content, ttl=1, proxied=True, comment=""):
     Currently supported records: A, AAAA, CNAME, TXT
 
     Note: Add validation TTL Value must be between 60 and 86400, with the minimum reduced to 30 for Enterprise zones.
-    
+
     CLI Example:
-    
+
     .. code-block:: bash
 
-        salt '*' cloudflare_dns.create_dns test.example.com A 1.1.1.1 60 True "DNS Managed by SaltStack" 
-    
+        salt '*' cloudflare_dns.create_dns test.example.com A 1.1.1.1 60 True "DNS Managed by SaltStack"
+
     """
     # Will add more later as I understand more.
     RECORD_TYPES = ["A", "AAAA", "CNAME", "TXT"]
 
     dns = ""
-    
+
     if type in RECORD_TYPES:
         api_token = __salt__["config.get"]("cloudflare").get("api_token")
 
@@ -183,7 +166,7 @@ def create_dns(hostname, type, content, ttl=1, proxied=True, comment=""):
 
         if zone:
             # Split the dns name to pull out just the domain name to grab the zone id
-            
+
             domain_split = hostname.split(".")
             dns = get_dns(hostname)
 
@@ -193,7 +176,7 @@ def create_dns(hostname, type, content, ttl=1, proxied=True, comment=""):
                 "content": content,
                 "ttl": ttl,
                 "proxied": proxied,
-                "comment": comment
+                "comment": comment,
             }
             if dns:
                 if dns["content"] != content:
@@ -201,14 +184,12 @@ def create_dns(hostname, type, content, ttl=1, proxied=True, comment=""):
             else:
                 dns = cf_dns_utils.create_dns(api_token, zone["id"], dns_data)
         else:
-            raise salt.exceptions.ArgumentValueError(
-                f"Cloudflare zone not found for {hostname}"
-            )
+            raise salt.exceptions.ArgumentValueError(f"Cloudflare zone not found for {hostname}")
     else:
         raise salt.exceptions.ArgumentValueError(
             f"Not a valid type {type} - must be one of {RECORD_TYPES}"
         )
-    
+
     return _simple_dns(dns)
 
 
