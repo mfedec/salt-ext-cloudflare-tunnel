@@ -153,6 +153,7 @@ def present(name, ingress):
     if update_config:
         if __opts__["test"]:
             ret["comment"] = "Tunnel config will be created/updated"
+            ret["changes"].setdefault("tunnel config", config_changes)
             return ret
 
         __salt__["cloudflare_tunnel.create_tunnel_config"](tunnel["id"], {"ingress": ingress})
