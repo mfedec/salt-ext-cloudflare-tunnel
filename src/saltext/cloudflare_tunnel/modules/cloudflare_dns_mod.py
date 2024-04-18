@@ -1,3 +1,4 @@
+# pylint: disable=unused-import
 """
 Module for managing Cloudflare DNS records
 
